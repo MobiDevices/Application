@@ -1,0 +1,39 @@
+# Maintainer: MobiDevices <md@mobidevices.com>
+pkgname=mobidevices
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="Media about gadgets and technologies"
+arch=('x86_64')
+url="https://mobidevices.com"
+license=('MIT')
+depends=('webkit2gtk' 'gtk3')
+makedepends=('rust' 'cargo' 'npm')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/MobiDevices/MobiDevices/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+prepare() {
+    cd "$srcdir/MobiDevices-$pkgver/app"
+    npm install
+}
+
+build() {
+    cd "$srcdir/MobiDevices-$pkgver/app"
+    npm run build
+}
+
+package() {
+    cd "$srcdir/MobiDevices-$pkgver/app/src-tauri/target/release"
+    
+    # Install binary
+    install -Dm755 mobidevices-app "$pkgdir/usr/bin/mobidevices"
+    
+    # Install desktop file
+    install -Dm644 "$srcdir/MobiDevices-$pkgver/app/aur/mobidevices.desktop" \
+        "$pkgdir/usr/share/applications/mobidevices.desktop"
+    
+    # Install icons
+    for size in 32 128; do
+        install -Dm644 "$srcdir/MobiDevices-$pkgver/app/src-tauri/icons/${size}x${size}.png" \
+            "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/mobidevices.png"
+    done
+}

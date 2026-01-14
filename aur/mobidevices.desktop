@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=MobiDevices
+Comment=Media about gadgets and technologies
+Icon=mobidevices
+Exec=mobidevices
+Categories=Network;News;
+Terminal=false
+StartupNotify=true

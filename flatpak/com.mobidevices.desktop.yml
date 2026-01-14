@@ -1,0 +1,41 @@
+app-id: com.mobidevices.desktop
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+command: mobidevices-app
+
+finish-args:
+  # Network access for WebView
+  - --share=network
+  # X11 and Wayland display
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  # GPU acceleration
+  - --device=dri
+  # Audio/video (if needed for media playback)
+  - --socket=pulseaudio
+  # Desktop integration
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.kde.StatusNotifierWatcher
+
+modules:
+  - name: mobidevices
+    buildsystem: simple
+    build-commands:
+      # Install the binary
+      - install -Dm755 mobidevices-app /app/bin/mobidevices-app
+      # Install desktop file
+      - install -Dm644 com.mobidevices.desktop.desktop /app/share/applications/com.mobidevices.desktop.desktop
+      # Install icons
+      - install -Dm644 icons/128x128.png /app/share/icons/hicolor/128x128/apps/com.mobidevices.desktop.png
+      - install -Dm644 icons/32x32.png /app/share/icons/hicolor/32x32/apps/com.mobidevices.desktop.png
+    sources:
+      - type: archive
+        url: https://github.com/MobiDevices/MobiDevices/releases/download/v1.0.0/mobidevices-linux.tar.gz
+        sha256: REPLACE_WITH_ACTUAL_SHA256
+      - type: file
+        path: com.mobidevices.desktop.desktop
+      - type: dir
+        path: ../src-tauri/icons
+        dest: icons

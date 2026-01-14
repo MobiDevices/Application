@@ -1,0 +1,41 @@
+name: mobidevices
+version: '1.0.0'
+summary: Media about gadgets and technologies
+description: |
+  MobiDevices is a native desktop application for accessing mobidevices.com.
+  Browse the latest news, reviews, and articles about gadgets and technology
+  in a fast, lightweight desktop environment.
+
+base: core22
+confinement: strict
+grade: stable
+
+apps:
+  mobidevices:
+    command: bin/mobidevices-app
+    extensions: [gnome]
+    plugs:
+      - network
+      - network-bind
+      - desktop
+      - desktop-legacy
+      - wayland
+      - x11
+      - opengl
+      - audio-playback
+      - home
+
+parts:
+  mobidevices:
+    plugin: rust
+    source: ..
+    source-subdir: src-tauri
+    build-packages:
+      - libwebkit2gtk-4.1-dev
+      - libappindicator3-dev
+      - librsvg2-dev
+      - patchelf
+      - libssl-dev
+    stage-packages:
+      - libwebkit2gtk-4.1-0
+      - libappindicator3-1
