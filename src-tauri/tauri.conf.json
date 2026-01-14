@@ -9,19 +9,7 @@
     },
     "app": {
         "withGlobalTauri": false,
-        "windows": [
-            {
-                "title": "MobiDevices",
-                "url": "https://mobidevices.com",
-                "width": 1200,
-                "height": 800,
-                "minWidth": 400,
-                "minHeight": 600,
-                "resizable": true,
-                "fullscreen": false,
-                "center": true
-            }
-        ],
+        "windows": [],
         "security": {
             "csp": null
         }

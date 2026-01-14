@@ -6,7 +6,8 @@
     "scripts": {
         "tauri": "tauri",
         "dev": "tauri dev",
-        "build": "tauri build"
+        "build": "tauri build --bundles app",
+        "build:dmg": "bash scripts/clean-dmg-mounts.sh && tauri build --bundles dmg"
     },
     "devDependencies": {
         "@tauri-apps/cli": "^2.0.0"
