@@ -9,8 +9,15 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_shell::init());
+
+    // Desktop only: persist window size/position/maximized state between launches.
+    #[cfg(not(mobile))]
+    {
+        builder = builder.plugin(tauri_plugin_window_state::Builder::default().build());
+    }
+
+    builder
         .setup(|app| {
             fn log_external(msg: &str) {
                 // In production builds we keep logging off by default.
@@ -78,9 +85,6 @@ pub fn run() {
                 matches!(
                     host,
                     Some("mobidevices.com")
-                        | Some("www.mobidevices.com")
-                        | Some("m.mobidevices.com")
-                        | Some("amp.mobidevices.com")
                 )
             }
 
@@ -160,9 +164,7 @@ pub fn run() {
             // We create the main window manually so we can hook into navigation/new-window.
             let url = WebviewUrl::External("https://mobidevices.com".parse()?);
 
-            let title = format!("MobiDevices v{}", app.package_info().version);
-
-            log_external(&format!("setup: start ({title})"));
+            let title = "";
 
             let app_handle_new_window = app.handle().clone();
             let app_handle_navigation = app.handle().clone();
