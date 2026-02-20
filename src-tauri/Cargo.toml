@@ -10,14 +10,22 @@ name = "mobidevices_app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.5", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2.10", features = [] }
 tauri-plugin-shell = "2"
 tauri-plugin-window-state = "2.4.1"
 open = "5"
 url = "2"
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+sys-locale = "0.3"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6.3"
+objc2-app-kit = { version = "0.3.2", features = ["NSButton", "NSControl", "NSResponder", "NSView", "NSWindow"] }
+objc2-foundation = { version = "0.3.2", features = ["NSString", "objc2-core-foundation"] }
 
 [profile.release]
 panic = "abort"
