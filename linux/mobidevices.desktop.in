@@ -2,8 +2,8 @@
 Type=Application
 Name=MobiDevices
 Comment=Media about gadgets and technologies
-Icon=mobidevices
-Exec=mobidevices
+Icon=@ICON@
+Exec=@EXEC@
 Categories=Network;News;
 Terminal=false
 StartupNotify=true

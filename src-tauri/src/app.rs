@@ -30,7 +30,7 @@ pub fn run() {
             let app_handle_new_window = app.handle().clone();
             let app_handle_navigation = app.handle().clone();
 
-            let main_window = WebviewWindowBuilder::new(app, "main", url)
+            let _main_window = WebviewWindowBuilder::new(app, "main", url)
                 .title(title)
                 .initialization_script(external_links::link_intercept_script())
                 .initialization_script(window_title::title_sync_script())
@@ -61,7 +61,7 @@ pub fn run() {
 
             #[cfg(target_os = "macos")]
             {
-                navigation::install_macos_titlebar_nav(&main_window)?;
+                navigation::install_macos_titlebar_nav(&_main_window)?;
             }
 
             #[cfg(desktop)]

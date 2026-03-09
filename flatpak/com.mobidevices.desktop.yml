@@ -23,19 +23,14 @@ modules:
   - name: mobidevices
     buildsystem: simple
     build-commands:
-      # Install the binary
-      - install -Dm755 mobidevices-app /app/bin/mobidevices-app
-      # Install desktop file
-      - install -Dm644 com.mobidevices.desktop.desktop /app/share/applications/com.mobidevices.desktop.desktop
-      # Install icons
-      - install -Dm644 icons/128x128.png /app/share/icons/hicolor/128x128/apps/com.mobidevices.desktop.png
-      - install -Dm644 icons/32x32.png /app/share/icons/hicolor/32x32/apps/com.mobidevices.desktop.png
+      - sh install-linux-assets.sh mobidevices-app /app/bin mobidevices-app mobidevices.desktop.in /app/share com.mobidevices.desktop.desktop mobidevices-app com.mobidevices.desktop icons com.mobidevices.desktop
     sources:
-      - type: archive
-        url: https://github.com/MobiDevices/MobiDevices/releases/download/v1.0.0/mobidevices-linux.tar.gz
-        sha256: REPLACE_WITH_ACTUAL_SHA256
       - type: file
-        path: com.mobidevices.desktop.desktop
+        path: ../src-tauri/target/release/mobidevices-app
+      - type: file
+        path: ../scripts/install-linux-assets.sh
+      - type: file
+        path: ../linux/mobidevices.desktop.in
       - type: dir
         path: ../src-tauri/icons
         dest: icons

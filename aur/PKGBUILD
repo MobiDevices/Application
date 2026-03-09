@@ -22,18 +22,15 @@ build() {
 }
 
 package() {
-    cd "$srcdir/MobiDevices-$pkgver/app/src-tauri/target/release"
-    
-    # Install binary
-    install -Dm755 mobidevices-app "$pkgdir/usr/bin/mobidevices"
-    
-    # Install desktop file
-    install -Dm644 "$srcdir/MobiDevices-$pkgver/app/aur/mobidevices.desktop" \
-        "$pkgdir/usr/share/applications/mobidevices.desktop"
-    
-    # Install icons
-    for size in 32 128; do
-        install -Dm644 "$srcdir/MobiDevices-$pkgver/app/src-tauri/icons/${size}x${size}.png" \
-            "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/mobidevices.png"
-    done
+    sh "$srcdir/MobiDevices-$pkgver/app/scripts/install-linux-assets.sh" \
+        "$srcdir/MobiDevices-$pkgver/app/src-tauri/target/release/mobidevices-app" \
+        "$pkgdir/usr/bin" \
+        mobidevices \
+    "$srcdir/MobiDevices-$pkgver/app/linux/mobidevices.desktop.in" \
+        "$pkgdir/usr/share" \
+        mobidevices.desktop \
+    mobidevices \
+    mobidevices \
+        "$srcdir/MobiDevices-$pkgver/app/src-tauri/icons" \
+        mobidevices
 }
