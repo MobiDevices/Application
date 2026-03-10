@@ -8,8 +8,9 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .invoke_handler(tauri::generate_handler![window_title::set_window_title]);
 
-    // Desktop only: persist window size/position/maximized state between launches.
-    #[cfg(not(mobile))]
+    // On Linux, window-state restore can prevent the first window from appearing
+    // on some GTK/WebKit combinations. Keep startup path conservative there.
+    #[cfg(all(not(mobile), not(target_os = "linux")))]
     {
         builder = builder.plugin(tauri_plugin_window_state::Builder::default().build());
     }
@@ -64,10 +65,17 @@ pub fn run() {
                 navigation::install_macos_titlebar_nav(&_main_window)?;
             }
 
-            #[cfg(desktop)]
+            #[cfg(not(target_os = "linux"))]
             {
                 let menu = navigation::build_navigation_menu(&app.handle())?;
                 app.handle().set_menu(menu)?;
+            }
+
+            #[cfg(target_os = "linux")]
+            {
+                if let Ok(menu) = navigation::build_navigation_menu(&app.handle()) {
+                    let _ = app.handle().set_menu(menu);
+                }
             }
 
             Ok(())
