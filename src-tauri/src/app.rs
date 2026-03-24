@@ -1,12 +1,15 @@
 use crate::features::{navigation, window_title};
 use crate::shared::external_links;
+#[cfg(target_os = "linux")]
+use std::sync::{
+    atomic::{AtomicBool, Ordering},
+    Arc,
+};
 use tauri::utils::config::WebviewUrl;
 use tauri::webview::{NewWindowResponse, WebviewWindowBuilder};
 
 pub fn run() {
-    let mut builder = tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
-        .invoke_handler(tauri::generate_handler![window_title::set_window_title]);
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_shell::init());
 
     // On Linux, window-state restore can prevent the first window from appearing
     // on some GTK/WebKit combinations. Keep startup path conservative there.
@@ -31,15 +34,17 @@ pub fn run() {
             let app_handle_new_window = app.handle().clone();
             let app_handle_navigation = app.handle().clone();
 
-            let _main_window = WebviewWindowBuilder::new(app, "main", url)
+            #[allow(unused_mut)]
+            let mut main_window_builder = WebviewWindowBuilder::new(app, "main", url)
                 .title(title)
+                .on_document_title_changed(|window, title| {
+                    window_title::apply_window_title(&window, &title);
+                })
                 .initialization_script(external_links::link_intercept_script())
-                .initialization_script(window_title::title_sync_script())
                 .inner_size(1200.0, 800.0)
                 .min_inner_size(400.0, 600.0)
                 .resizable(true)
                 .fullscreen(false)
-                .center()
                 .on_new_window(move |url, _features| {
                     external_links::log_external(&format!("on_new_window: {}", url.as_str()));
                     #[allow(deprecated)]
@@ -57,25 +62,69 @@ pub fn run() {
                     }
 
                     true
-                })
-                .build()?;
+                });
+
+            #[cfg(not(target_os = "linux"))]
+            {
+                main_window_builder = main_window_builder.center();
+            }
+
+            let _main_window = main_window_builder.build()?;
 
             #[cfg(target_os = "macos")]
             {
                 navigation::install_macos_titlebar_nav(&_main_window)?;
             }
 
+            #[cfg(target_os = "linux")]
+            {
+                // Under Wayland/GTK, attaching the menubar during the initial startup
+                // path can race with the first surface configuration. Wait until the
+                // window emits a normal runtime event, then apply native setup.
+                let menu_installed = Arc::new(AtomicBool::new(false));
+                let window_centered = Arc::new(AtomicBool::new(false));
+                let menu_window = _main_window.clone();
+                let center_window = _main_window.clone();
+                let menu_app_handle = app.handle().clone();
+                let menu_installed_flag = Arc::clone(&menu_installed);
+                let window_centered_flag = Arc::clone(&window_centered);
+
+                _main_window.on_window_event(move |event| {
+                    let should_try_install = matches!(
+                        event,
+                        tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Focused(true)
+                    );
+
+                    if !should_try_install {
+                        return;
+                    }
+
+                    if window_centered_flag
+                        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+                        .is_ok()
+                        && center_window.center().is_err()
+                    {
+                        window_centered_flag.store(false, Ordering::Release);
+                    }
+
+                    if menu_installed_flag
+                        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+                        .is_ok()
+                    {
+                        let install_result = navigation::build_navigation_menu(&menu_app_handle)
+                            .and_then(|menu| menu_window.set_menu(menu).map(|_| ()));
+
+                        if install_result.is_err() {
+                            menu_installed_flag.store(false, Ordering::Release);
+                        }
+                    }
+                });
+            }
+
             #[cfg(not(target_os = "linux"))]
             {
                 let menu = navigation::build_navigation_menu(&app.handle())?;
                 app.handle().set_menu(menu)?;
-            }
-
-            #[cfg(target_os = "linux")]
-            {
-                if let Ok(menu) = navigation::build_navigation_menu(&app.handle()) {
-                    let _ = app.handle().set_menu(menu);
-                }
             }
 
             Ok(())

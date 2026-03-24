@@ -1,8 +1,10 @@
-#[tauri::command]
-pub fn set_window_title<R: tauri::Runtime>(window: tauri::Window<R>, title: String) {
+fn normalized_window_title<R: tauri::Runtime>(
+    window: &tauri::WebviewWindow<R>,
+    title: &str,
+) -> Option<String> {
     let normalized = title.trim();
     if normalized.is_empty() {
-        return;
+        return None;
     }
 
     #[cfg(target_os = "macos")]
@@ -29,9 +31,11 @@ pub fn set_window_title<R: tauri::Runtime>(window: tauri::Window<R>, title: Stri
     #[cfg(not(target_os = "macos"))]
     let final_title = normalized.to_string();
 
-    let _ = window.set_title(&final_title);
+    Some(final_title)
 }
 
-pub fn title_sync_script() -> &'static str {
-    include_str!("window_title/scripts/title_sync.js")
+pub fn apply_window_title<R: tauri::Runtime>(window: &tauri::WebviewWindow<R>, title: &str) {
+    if let Some(final_title) = normalized_window_title(window, title) {
+        let _ = window.set_title(&final_title);
+    }
 }
