@@ -1,6 +1,8 @@
 use crate::features::{navigation, window_title};
 use crate::shared::external_links;
 #[cfg(target_os = "linux")]
+use std::env;
+#[cfg(target_os = "linux")]
 use std::sync::{
     atomic::{AtomicBool, Ordering},
     Arc,
@@ -8,7 +10,59 @@ use std::sync::{
 use tauri::utils::config::WebviewUrl;
 use tauri::webview::{NewWindowResponse, WebviewWindowBuilder};
 
+#[cfg(target_os = "linux")]
+fn is_wayland_session() -> bool {
+    matches!(
+        env::var("XDG_SESSION_TYPE").ok().as_deref(),
+        Some(value) if value.eq_ignore_ascii_case("wayland")
+    ) || env::var_os("WAYLAND_DISPLAY").is_some()
+}
+
+#[cfg(target_os = "linux")]
+fn disable_broken_wayland_appmenu_proxy() {
+    if !is_wayland_session() {
+        return;
+    }
+
+    // `appmenu-gtk-module` / `unity-gtk-module` hook GTK window realization
+    // to export menus over D-Bus. On Wayland this hook is known to trip
+    // `gdk_wayland_window_set_dbus_properties_libgtk_only` assertions and can
+    // destabilize GTK apps. Keep our native in-window menubar and disable only
+    // the external global-menu proxy for this process.
+    env::set_var("UBUNTU_MENUPROXY", "0");
+
+    let Some(modules) = env::var_os("GTK_MODULES") else {
+        return;
+    };
+
+    let filtered = modules
+        .to_string_lossy()
+        .split(':')
+        .filter(|module| {
+            !matches!(
+                module.trim(),
+                "appmenu-gtk-module"
+                    | "appmenu-gtk3-module"
+                    | "unity-gtk-module"
+                    | "unity-gtk3-module"
+            )
+        })
+        .map(str::trim)
+        .filter(|module| !module.is_empty())
+        .collect::<Vec<_>>()
+        .join(":");
+
+    if filtered.is_empty() {
+        env::remove_var("GTK_MODULES");
+    } else {
+        env::set_var("GTK_MODULES", filtered);
+    }
+}
+
 pub fn run() {
+    #[cfg(target_os = "linux")]
+    disable_broken_wayland_appmenu_proxy();
+
     let mut builder = tauri::Builder::default().plugin(tauri_plugin_shell::init());
 
     // On Linux, window-state restore can prevent the first window from appearing
@@ -81,6 +135,7 @@ pub fn run() {
                 // Under Wayland/GTK, attaching the menubar during the initial startup
                 // path can race with the first surface configuration. Wait until the
                 // window emits a normal runtime event, then apply native setup.
+                let wayland_session = is_wayland_session();
                 let menu_installed = Arc::new(AtomicBool::new(false));
                 let window_centered = Arc::new(AtomicBool::new(false));
                 let menu_window = _main_window.clone();
@@ -99,9 +154,10 @@ pub fn run() {
                         return;
                     }
 
-                    if window_centered_flag
-                        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
-                        .is_ok()
+                    if !wayland_session
+                        && window_centered_flag
+                            .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+                            .is_ok()
                         && center_window.center().is_err()
                     {
                         window_centered_flag.store(false, Ordering::Release);
