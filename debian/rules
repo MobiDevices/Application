@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	npm install
+	npm run build
+
+override_dh_auto_install:
+	sh scripts/install-linux-assets.sh \
+		src-tauri/target/release/mobidevices-app \
+		debian/mobidevices/usr/bin \
+		mobidevices \
+		linux/mobidevices.desktop.in \
+		debian/mobidevices/usr/share \
+		com.mobidevices.desktop.desktop \
+		mobidevices \
+		com.mobidevices.desktop \
+		src-tauri/icons \
+		com.mobidevices.desktop \
+		linux/com.mobidevices.desktop.metainfo.xml \
+		com.mobidevices.desktop.metainfo.xml
+	install -Dm644 ../LICENSE debian/mobidevices/usr/share/licenses/mobidevices/LICENSE

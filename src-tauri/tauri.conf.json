@@ -15,6 +15,14 @@
     },
     "bundle": {
         "active": true,
+        "targets": "all",
+        "category": "News",
+        "publisher": "MobiDevices",
+        "homepage": "https://mobidevices.com",
+        "shortDescription": "Native desktop access to MobiDevices.com",
+        "longDescription": "MobiDevices is a Tauri-based desktop application for browsing the latest gadget news, reviews, and technology coverage from MobiDevices.com with native window management, external-link handling, and persistent window state.",
+        "license": "MIT",
+        "licenseFile": "../../LICENSE",
         "icon": [
             "icons/32x32.png",
             "icons/128x128.png",
@@ -22,7 +30,22 @@
             "icons/icon.icns",
             "icons/icon.ico"
         ],
-        "targets": "all",
+        "linux": {
+            "appimage": {
+                "files": {
+                    "/usr/share/metainfo/com.mobidevices.desktop.metainfo.xml": "../linux/com.mobidevices.desktop.metainfo.xml"
+                }
+            },
+            "deb": {
+                "depends": [
+                    "libgtk-3-0",
+                    "libwebkit2gtk-4.1-0"
+                ],
+                "files": {
+                    "/usr/share/metainfo/com.mobidevices.desktop.metainfo.xml": "../linux/com.mobidevices.desktop.metainfo.xml"
+                }
+            }
+        },
         "macOS": {
             "minimumSystemVersion": "10.13"
         },

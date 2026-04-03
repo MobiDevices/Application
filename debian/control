@@ -1,0 +1,28 @@
+Source: mobidevices
+Section: net
+Priority: optional
+Maintainer: MobiDevices <md@mobidevices.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ cargo,
+ npm,
+ libappindicator3-dev,
+ librsvg2-dev,
+ libwebkit2gtk-4.1-dev,
+ libgtk-3-dev,
+ patchelf
+Standards-Version: 4.7.0
+Rules-Requires-Root: no
+Homepage: https://mobidevices.com
+
+Package: mobidevices
+Architecture: any
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+ libgtk-3-0,
+ libwebkit2gtk-4.1-0
+Description: Native desktop client for MobiDevices.com
+ MobiDevices is a Tauri-based desktop application for browsing
+ MobiDevices.com with native window management, external-link handling,
+ and persistent window state.

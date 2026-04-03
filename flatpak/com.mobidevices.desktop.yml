@@ -5,25 +5,19 @@ sdk: org.freedesktop.Sdk
 command: mobidevices-app
 
 finish-args:
-  # Network access for WebView
   - --share=network
-  # X11 and Wayland display
   - --share=ipc
-  - --socket=x11
+  - --socket=fallback-x11
   - --socket=wayland
-  # GPU acceleration
   - --device=dri
-  # Audio/video (if needed for media playback)
   - --socket=pulseaudio
-  # Desktop integration
   - --talk-name=org.freedesktop.Notifications
-  - --talk-name=org.kde.StatusNotifierWatcher
 
 modules:
   - name: mobidevices
     buildsystem: simple
     build-commands:
-      - sh install-linux-assets.sh mobidevices-app /app/bin mobidevices-app mobidevices.desktop.in /app/share com.mobidevices.desktop.desktop mobidevices-app com.mobidevices.desktop icons com.mobidevices.desktop
+      - sh install-linux-assets.sh mobidevices-app /app/bin mobidevices-app mobidevices.desktop.in /app/share com.mobidevices.desktop.desktop mobidevices-app com.mobidevices.desktop icons com.mobidevices.desktop com.mobidevices.desktop.metainfo.xml com.mobidevices.desktop.metainfo.xml
     sources:
       - type: file
         path: ../src-tauri/target/release/mobidevices-app
@@ -31,6 +25,8 @@ modules:
         path: ../scripts/install-linux-assets.sh
       - type: file
         path: ../linux/mobidevices.desktop.in
+      - type: file
+        path: ../linux/com.mobidevices.desktop.metainfo.xml
       - type: dir
         path: ../src-tauri/icons
         dest: icons

@@ -1,10 +1,17 @@
 name: mobidevices
+title: MobiDevices
 version: '1.0.0'
-summary: Media about gadgets and technologies
+summary: Native desktop access to MobiDevices.com
 description: |
   MobiDevices is a native desktop application for accessing mobidevices.com.
-  Browse the latest news, reviews, and articles about gadgets and technology
-  in a fast, lightweight desktop environment.
+  Browse gadget news, reviews, and technology articles in a lightweight
+  desktop window with native navigation, external-link handling, and
+  persistent window state.
+website: https://mobidevices.com
+source-code: https://github.com/MobiDevices/MobiDevices
+issues: https://github.com/MobiDevices/MobiDevices/issues
+contact: md@mobidevices.com
+license: MIT
 
 base: core22
 confinement: strict
@@ -13,7 +20,7 @@ grade: stable
 apps:
   mobidevices:
     command: bin/mobidevices-app
-    desktop: usr/share/applications/mobidevices.desktop
+    desktop: usr/share/applications/com.mobidevices.desktop.desktop
     extensions: [gnome]
     plugs:
       - network
@@ -24,24 +31,26 @@ apps:
       - x11
       - opengl
       - audio-playback
-      - home
 
 parts:
   mobidevices:
     plugin: nil
+    source: ..
     override-build: |
       set -eux
-      sh "$CRAFT_PROJECT_DIR/.ci/install-linux-assets.sh" \
-        "$CRAFT_PROJECT_DIR/.ci/mobidevices-app" \
+      sh "$CRAFT_PART_SRC/scripts/install-linux-assets.sh" \
+        "$CRAFT_PART_SRC/src-tauri/target/release/mobidevices-app" \
         "$CRAFT_PART_INSTALL/bin" \
         mobidevices-app \
-        "$CRAFT_PROJECT_DIR/.ci/mobidevices.desktop.in" \
+        "$CRAFT_PART_SRC/linux/mobidevices.desktop.in" \
         "$CRAFT_PART_INSTALL/usr/share" \
-        mobidevices.desktop \
+        com.mobidevices.desktop.desktop \
         mobidevices \
-        mobidevices \
-        "$CRAFT_PROJECT_DIR/.ci/icons" \
-        mobidevices
+        com.mobidevices.desktop \
+        "$CRAFT_PART_SRC/src-tauri/icons" \
+        com.mobidevices.desktop \
+        "$CRAFT_PART_SRC/linux/com.mobidevices.desktop.metainfo.xml" \
+        com.mobidevices.desktop.metainfo.xml
     stage-packages:
       - libwebkit2gtk-4.1-0
       - libappindicator3-1

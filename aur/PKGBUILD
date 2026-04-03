@@ -2,12 +2,12 @@
 pkgname=mobidevices
 pkgver=1.0.0
 pkgrel=1
-pkgdesc="Media about gadgets and technologies"
+pkgdesc="Native desktop client for MobiDevices.com"
 arch=('x86_64')
 url="https://mobidevices.com"
 license=('MIT')
-depends=('webkit2gtk' 'gtk3')
-makedepends=('rust' 'cargo' 'npm')
+depends=('gtk3' 'webkit2gtk-4.1')
+makedepends=('cargo' 'npm')
 source=("$pkgname-$pkgver.tar.gz::https://github.com/MobiDevices/MobiDevices/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')
 
@@ -22,15 +22,19 @@ build() {
 }
 
 package() {
+    install -Dm644 "$srcdir/MobiDevices-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+
     sh "$srcdir/MobiDevices-$pkgver/app/scripts/install-linux-assets.sh" \
         "$srcdir/MobiDevices-$pkgver/app/src-tauri/target/release/mobidevices-app" \
         "$pkgdir/usr/bin" \
         mobidevices \
-    "$srcdir/MobiDevices-$pkgver/app/linux/mobidevices.desktop.in" \
+        "$srcdir/MobiDevices-$pkgver/app/linux/mobidevices.desktop.in" \
         "$pkgdir/usr/share" \
-        mobidevices.desktop \
-    mobidevices \
-    mobidevices \
+        com.mobidevices.desktop.desktop \
+        mobidevices \
+        com.mobidevices.desktop \
         "$srcdir/MobiDevices-$pkgver/app/src-tauri/icons" \
-        mobidevices
+        com.mobidevices.desktop \
+        "$srcdir/MobiDevices-$pkgver/app/linux/com.mobidevices.desktop.metainfo.xml" \
+        com.mobidevices.desktop.metainfo.xml
 }

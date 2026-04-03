@@ -15,6 +15,8 @@ app/
 ├── README.md
 ├── AGENTS.md
 ├── package.json
+├── linux/
+├── debian/
 ├── scripts/
 ├── src-tauri/
 │   ├── src/
@@ -46,6 +48,7 @@ cd app
 npm run dev
 npm run build
 npm run build:dmg
+npm run validate:linux-assets
 ```
 
 ## Documentation

@@ -1,13 +1,23 @@
 {
     "name": "mobidevices-app",
     "version": "1.0.0",
-    "description": "MobiDevices native app powered by Tauri",
+    "description": "Native desktop client for MobiDevices.com",
+    "homepage": "https://mobidevices.com",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/MobiDevices/MobiDevices.git",
+        "directory": "app"
+    },
+    "bugs": {
+        "url": "https://github.com/MobiDevices/MobiDevices/issues"
+    },
     "type": "module",
     "scripts": {
         "tauri": "tauri",
         "dev": "tauri dev",
         "build": "tauri build --bundles app",
-        "build:dmg": "bash scripts/clean-dmg-mounts.sh && tauri build --bundles dmg"
+        "build:dmg": "bash scripts/clean-dmg-mounts.sh && tauri build --bundles dmg",
+        "validate:linux-assets": "bash scripts/validate-linux-assets.sh src-tauri/target/release/mobidevices-app"
     },
     "devDependencies": {
         "@tauri-apps/cli": "2.10.0"

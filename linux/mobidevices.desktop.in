@@ -1,9 +1,10 @@
 [Desktop Entry]
 Type=Application
 Name=MobiDevices
-Comment=Media about gadgets and technologies
+Comment=Native desktop access to mobidevices.com
 Icon=@ICON@
 Exec=@EXEC@
 Categories=Network;News;
+Keywords=mobidevices;technology;gadgets;reviews;news;
 Terminal=false
 StartupNotify=true
