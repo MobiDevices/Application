@@ -35,7 +35,7 @@
   <content_rating type="oars-1.1"/>
 
   <url type="homepage">https://mobidevices.com</url>
-  <url type="bugtracker">https://github.com/MobiDevices/MobiDevices/issues</url>
+  <url type="bugtracker">https://github.com/MobiDevices/MobiDevices-app/issues</url>
 
   <releases>
     <release version="1.0.0" date="2026-04-04">

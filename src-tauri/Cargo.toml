@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "Native desktop client for MobiDevices.com"
 authors = ["MobiDevices <md@mobidevices.com>"]
 homepage = "https://mobidevices.com"
-repository = "https://github.com/MobiDevices/MobiDevices"
+repository = "https://github.com/MobiDevices/MobiDevices-app"
 license = "MIT"
 edition = "2021"
 

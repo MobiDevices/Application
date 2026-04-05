@@ -2,27 +2,32 @@
 
 ## Overview
 
-Cross-platform native application built with Tauri 2 for MobiDevices.
+Standalone repository for the cross-platform native MobiDevices application built with Tauri 2.
 
-- Main app scope: `app/`
-- Rust/Tauri code: `app/src-tauri/`
+- Main scope: `.`
+- Rust/Tauri code: `src-tauri/`
 - Website target: https://mobidevices.com
 
 ## Structure
 
 ```text
-app/
+.
 ├── README.md
 ├── AGENTS.md
+├── LICENSE
 ├── package.json
-├── linux/
-├── debian/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       └── build.yml
 ├── scripts/
 ├── src-tauri/
 │   ├── src/
 │   ├── capabilities/
 │   ├── i18n/
 │   └── tauri.conf.json
+├── linux/
+├── debian/
 ├── flatpak/
 ├── snap/
 └── aur/
@@ -31,20 +36,18 @@ app/
 ## Working Rules
 
 - Edit source/config files, not generated build output.
-- Avoid editing generated paths unless explicitly requested (`app/src-tauri/target/`, `app/src-tauri/gen/`).
-- Keep this README high-level and stable (avoid implementation-level details).
+- Avoid editing generated paths unless explicitly requested (`src-tauri/target/`, `src-tauri/gen/`).
+- Keep this README high-level and stable.
 
 ## Quick Start
 
 ```bash
-cd app
 npm install
 ```
 
 ## Common Commands
 
 ```bash
-cd app
 npm run dev
 npm run build
 npm run build:dmg
@@ -53,6 +56,6 @@ npm run validate:linux-assets
 
 ## Documentation
 
-- App workflow and constraints: `app/AGENTS.md`
-- Root conventions: `AGENTS.md`
-- If app architecture changes (structure, runtime responsibilities, major integration boundaries), update this README in the same change.
+- Workflow and constraints: `AGENTS.md`
+- CI validation: `.github/workflows/ci.yml`
+- Release workflow: `.github/workflows/build.yml`

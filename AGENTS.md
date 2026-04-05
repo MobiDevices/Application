@@ -11,122 +11,62 @@ It is a WebView-based app with additional native behavior for:
 - dynamic window title sync
 - persisted desktop window state
 
-## Scope and Precedence
-
-- This file defines app-specific rules and overrides root defaults for app tasks.
-- In conflicts: user request -> this file -> root `AGENTS.md`.
-
 ## Path Policy
 
 Allowed by default:
 
-- `app/src-tauri/src/`
-- `app/src-tauri/capabilities/`
-- `app/src-tauri/i18n/`
-- `app/src-tauri/tauri.conf.json`
-- `app/src-tauri/Cargo.toml`
-- `app/src-tauri/build.rs`
-- `app/scripts/`
-- `app/package.json`
-- `app/flatpak/`, `app/snap/`, `app/aur/` (when packaging work is requested)
+- `src-tauri/src/`
+- `src-tauri/capabilities/`
+- `src-tauri/i18n/`
+- `src-tauri/tauri.conf.json`
+- `src-tauri/Cargo.toml`
+- `src-tauri/build.rs`
+- `scripts/`
+- `package.json`
+- `flatpak/`, `snap/`, `aur/`, `linux/`, `debian/`
 
 Do not edit unless explicitly requested:
 
-- `app/node_modules/`
-- `app/src-tauri/target/`
-- `app/src-tauri/gen/` (generated platform project files)
-- Binary artifacts (`*.apk`, `*.idsig`, `*.dmg`, etc.)
+- `node_modules/`
+- `src-tauri/target/`
+- `src-tauri/gen/`
+- Binary artifacts such as `*.apk`, `*.idsig`, `*.dmg`
 
 ## Code Style
 
 - For JS/TS files: single quotes
 - For JS/TS files: no semicolons
 
-## Project Structure
-
-```text
-app/
-├── package.json
-├── mobidevices.keystore
-├── scripts/
-│   └── clean-dmg-mounts.sh
-├── flatpak/
-├── snap/
-├── aur/
-└── src-tauri/
-    ├── Cargo.toml
-    ├── rust-toolchain.toml
-    ├── tauri.conf.json
-    ├── build.rs
-    ├── capabilities/
-    │   └── default.json
-    ├── i18n/
-    │   ├── en/translate.yml
-    │   └── ru/translate.yml
-    ├── icons/
-    └── src/
-        ├── main.rs
-        ├── lib.rs
-        ├── app.rs
-        ├── features/
-        └── shared/
-```
-
 ## Requirements
 
-- Rust toolchain pinned in `app/src-tauri/rust-toolchain.toml` (currently `1.93.1`)
+- Rust toolchain pinned in `src-tauri/rust-toolchain.toml`
 - Node.js 18+
 - For Android: Java 17, Android SDK, NDK
-
-Typical shell setup:
-
-```bash
-source "$HOME/.cargo/env"
-export ANDROID_HOME="/opt/homebrew/share/android-commandlinetools"
-export NDK_HOME="$ANDROID_HOME/ndk/27.0.12077973"
-export JAVA_HOME="/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home"
-```
 
 ## Development Commands
 
 ```bash
-cd app
 npm install
 npm run dev
 npm run build
 npm run build:dmg
 ```
 
-Script mapping from `package.json`:
-
-- `npm run dev` -> `tauri dev`
-- `npm run build` -> `tauri build --bundles app`
-- `npm run build:dmg` -> cleanup script + `tauri build --bundles dmg`
-
 ## Build Outputs
 
 Common outputs:
 
-- macOS app bundle: `app/src-tauri/target/release/bundle/macos/`
-- macOS DMG: `app/src-tauri/target/release/bundle/dmg/`
-- Generic Tauri bundle output root: `app/src-tauri/target/release/bundle/`
+- macOS app bundle: `src-tauri/target/release/bundle/macos/`
+- macOS DMG: `src-tauri/target/release/bundle/dmg/`
+- Generic Tauri bundle output root: `src-tauri/target/release/bundle/`
 
-Android build flow:
+Unsigned Android APK output:
 
-```bash
-npx tauri android init
-npx tauri android build --apk true
-```
-
-Unsigned APK is produced under:
-
-- `app/src-tauri/gen/android/app/build/outputs/apk/universal/release/`
-
-Signing is a separate manual step (keystore + zipalign + apksigner).
+- `src-tauri/gen/android/app/build/outputs/apk/universal/release/`
 
 ## Runtime Architecture Notes
 
-Main window setup is in `app/src-tauri/src/app.rs`:
+Main window setup is in `src-tauri/src/app.rs`:
 
 - app creates `main` WebView window manually
 - injects JS for external-link intercept and title sync
@@ -134,66 +74,50 @@ Main window setup is in `app/src-tauri/src/app.rs`:
 
 Native modules:
 
-- `app/src-tauri/src/features/`: feature modules for navigation/window/UI integration
-- `app/src-tauri/src/shared/`: shared cross-cutting runtime modules
-- `tauri-plugin-window-state`: persists desktop window state
+- `src-tauri/src/features/` for feature modules
+- `src-tauri/src/shared/` for shared cross-cutting runtime modules
+- `tauri-plugin-window-state` persists desktop window state
 
-## Configuration
-
-Prefer referencing real config files:
-
-- `app/src-tauri/tauri.conf.json`
-- `app/src-tauri/capabilities/default.json`
-- `app/src-tauri/Cargo.toml`
-
-## External Links (Release Builds)
+## External Links
 
 Observed behavior: links can work in `npm run dev` but fail in release bundle if website JS intercepts clicks before Tauri hooks.
 
 Current fix in this repo:
 
-1. Inject click-capture script in WebView.
-2. Route external links through `window.open(..., "_blank")`.
-3. Handle in Rust (`on_new_window` / `on_navigation`) and open via shell.
+1. Inject click-capture script in WebView
+2. Route external links through `window.open(..., "_blank")`
+3. Handle in Rust (`on_new_window` / `on_navigation`) and open via shell
 
-Diagnostics:
+## CI/CD
 
-- Logging is disabled in release by default.
-- Enable temporary logs with `MOBIDEVICES_LOG_EXTERNAL=1`.
-- Log file: `/tmp/mobidevices-external-links.log` (macOS).
-
-## DMG Bundling Flakiness
-
-If DMG build fails with `Resource busy`, cleanup stale mounts:
-
-- script: `app/scripts/clean-dmg-mounts.sh`
-- already wired into `npm run build:dmg`
-
-## Linux Distribution Manifests
-
-- `app/flatpak/`
-- `app/snap/`
-- `app/aur/`
-
-## Android Keystore
-
-`app/mobidevices.keystore` is critical for Play Store updates.
-
-- Keep it safe.
-- Do not commit secrets/passwords.
+- CI workflow: `.github/workflows/ci.yml`
+- Release workflow: `.github/workflows/build.yml`
 
 ## Definition of Done
 
 For Rust/Tauri source or config changes:
 
-1. Run `cd app && cargo check --manifest-path src-tauri/Cargo.toml`
-2. Run `cd app && npm run build` when changes can affect runtime/bundling
-3. Update `app/README.md` if app architecture changed
-4. Report check results and any skipped/failed validation
+1. Run `cargo check --manifest-path src-tauri/Cargo.toml`
+2. Run `npm run build` when changes can affect runtime or bundling
+3. Update `README.md` if app architecture changed
+4. Report check results and any skipped validation
 
-For docs-only or manifest-only changes that do not affect runtime behavior, build may be skipped with a short reason.
+For docs-only or packaging-only changes that do not affect runtime behavior, build may be skipped with a short reason.
 
-## Reporting and Fallback
+## Final Report Format
 
-- For final response structure, follow root `AGENTS.md` -> `Final Report Format`.
-- For environment/dependency failures, follow root `AGENTS.md` -> `Fallback Policy (Missing Environment/Deps)`.
+For substantial tasks, the final message should include:
+
+1. Files changed
+2. Commands/checks run and result
+3. Risks, assumptions, or anything not validated
+4. Next action, only if a natural next step exists
+
+## Fallback Policy
+
+If a required command fails because of missing environment, dependency, or tooling:
+
+1. Stop the failing flow and keep existing changes intact
+2. Report the exact failing command and short error reason
+3. Continue with the best safe alternative checks available locally
+4. Ask for user guidance only when blocked from meaningful validation

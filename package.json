@@ -5,11 +5,10 @@
     "homepage": "https://mobidevices.com",
     "repository": {
         "type": "git",
-        "url": "https://github.com/MobiDevices/MobiDevices.git",
-        "directory": "app"
+        "url": "https://github.com/MobiDevices/MobiDevices-app.git"
     },
     "bugs": {
-        "url": "https://github.com/MobiDevices/MobiDevices/issues"
+        "url": "https://github.com/MobiDevices/MobiDevices-app/issues"
     },
     "type": "module",
     "scripts": {
