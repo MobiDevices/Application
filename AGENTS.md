@@ -34,6 +34,7 @@ Do not edit unless explicitly requested:
 
 ## Code Style
 
+- Use 4 spaces for indentation when writing or editing files
 - For JS/TS files: single quotes
 - For JS/TS files: no semicolons
 

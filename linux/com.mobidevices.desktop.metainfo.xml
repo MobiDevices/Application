@@ -1,47 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.mobidevices.desktop</id>
-  <metadata_license>CC0-1.0</metadata_license>
-  <project_license>MIT</project_license>
-  <name>MobiDevices</name>
-  <summary>Native desktop access to MobiDevices.com</summary>
-  <developer_name>MobiDevices</developer_name>
-  <launchable type="desktop-id">com.mobidevices.desktop.desktop</launchable>
-  <update_contact>md@mobidevices.com</update_contact>
+    <id>com.mobidevices.desktop</id>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>MIT</project_license>
+    <name>MobiDevices</name>
+    <summary>Native desktop access to MobiDevices.com</summary>
+    <developer_name>MobiDevices</developer_name>
+    <launchable type="desktop-id">com.mobidevices.desktop.desktop</launchable>
+    <update_contact>md@mobidevices.com</update_contact>
 
-  <description>
-    <p>MobiDevices is a Tauri-based desktop application for reading the latest gadget news, reviews, and technology coverage from MobiDevices.com in a lightweight native window.</p>
-    <p>The app keeps the live website experience while adding desktop-native navigation, external-link handling, and persistent window state across Linux, macOS, and Windows.</p>
-  </description>
+    <description>
+        <p>MobiDevices is a Tauri-based desktop application for reading the latest gadget news, reviews, and technology coverage from MobiDevices.com in a lightweight native window.</p>
+        <p>The app keeps the live website experience while adding desktop-native navigation, external-link handling, and persistent window state across Linux, macOS, and Windows.</p>
+    </description>
 
-  <categories>
-    <category>Network</category>
-    <category>News</category>
-  </categories>
+    <screenshots>
+        <screenshot type="default">
+            <caption>Main news feed</caption>
+            <image type="source" width="2560" height="1440">https://mobidevices.com/screenshots/mobidevices-app_1.jpeg</image>
+        </screenshot>
+        <screenshot>
+            <caption>Article view</caption>
+            <image type="source" width="2560" height="1440">https://mobidevices.com/screenshots/mobidevices-app_2.jpeg</image>
+        </screenshot>
+        <screenshot>
+            <caption>Native navigation menu</caption>
+            <image type="source" width="2560" height="1440">https://mobidevices.com/screenshots/mobidevices-app_3.jpeg</image>
+        </screenshot>
+    </screenshots>
 
-  <keywords>
-    <keyword>mobidevices</keyword>
-    <keyword>technology</keyword>
-    <keyword>gadgets</keyword>
-    <keyword>reviews</keyword>
-    <keyword>news</keyword>
-  </keywords>
+    <categories>
+        <category>Network</category>
+        <category>News</category>
+    </categories>
 
-  <provides>
-    <binary>mobidevices</binary>
-    <binary>mobidevices-app</binary>
-  </provides>
+    <keywords>
+        <keyword>mobidevices</keyword>
+        <keyword>technology</keyword>
+        <keyword>gadgets</keyword>
+        <keyword>reviews</keyword>
+        <keyword>news</keyword>
+    </keywords>
 
-  <content_rating type="oars-1.1"/>
+    <provides>
+        <binary>mobidevices</binary>
+    </provides>
 
-  <url type="homepage">https://mobidevices.com</url>
-  <url type="bugtracker">https://github.com/MobiDevices/MobiDevices-app/issues</url>
+    <content_rating type="oars-1.1"/>
 
-  <releases>
-    <release version="1.0.0" date="2026-04-04">
-      <description>
-        <p>Initial desktop release with Linux packaging metadata for Snap, Flatpak, AUR, Debian, AppImage, and GitHub Releases.</p>
-      </description>
-    </release>
-  </releases>
+    <url type="homepage">https://mobidevices.com</url>
+    <url type="bugtracker">https://github.com/MobiDevices/MobiDevices-app/issues</url>
+
+    <releases>
+        <release version="1.0.0" date="2026-04-04">
+            <description>
+                <p>Initial desktop release with Linux packaging metadata for Snap, Flatpak, AUR, Debian, AppImage, and GitHub Releases.</p>
+            </description>
+        </release>
+    </releases>
 </component>

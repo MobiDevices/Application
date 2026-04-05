@@ -1,32 +1,67 @@
 app-id: com.mobidevices.desktop
-runtime: org.freedesktop.Platform
-runtime-version: '23.08'
-sdk: org.freedesktop.Sdk
-command: mobidevices-app
+runtime: org.gnome.Platform
+runtime-version: '47'
+sdk: org.gnome.Sdk
+sdk-extensions:
+    - org.freedesktop.Sdk.Extension.rust-stable
+command: mobidevices
 
 finish-args:
-  - --share=network
-  - --share=ipc
-  - --socket=fallback-x11
-  - --socket=wayland
-  - --device=dri
-  - --socket=pulseaudio
-  - --talk-name=org.freedesktop.Notifications
+    - --share=network
+    - --share=ipc
+    - --socket=fallback-x11
+    - --socket=wayland
+    - --device=dri
+    - --socket=pulseaudio
+    - --talk-name=org.freedesktop.Notifications
 
 modules:
-  - name: mobidevices
-    buildsystem: simple
-    build-commands:
-      - sh install-linux-assets.sh mobidevices-app /app/bin mobidevices-app mobidevices.desktop.in /app/share com.mobidevices.desktop.desktop mobidevices-app com.mobidevices.desktop icons com.mobidevices.desktop com.mobidevices.desktop.metainfo.xml com.mobidevices.desktop.metainfo.xml
-    sources:
-      - type: file
-        path: ../src-tauri/target/release/mobidevices-app
-      - type: file
-        path: ../scripts/install-linux-assets.sh
-      - type: file
-        path: ../linux/mobidevices.desktop.in
-      - type: file
-        path: ../linux/com.mobidevices.desktop.metainfo.xml
-      - type: dir
-        path: ../src-tauri/icons
-        dest: icons
+    - name: mobidevices
+      buildsystem: simple
+      build-options:
+          append-path: /usr/lib/sdk/rust-stable/bin
+          env:
+              CARGO_HOME: /run/build/mobidevices/cargo
+              CARGO_NET_OFFLINE: 'true'
+      build-commands:
+          - cargo --offline fetch --manifest-path src-tauri/Cargo.toml --locked --verbose
+          - cargo --offline build --manifest-path src-tauri/Cargo.toml --release --locked
+          - sh scripts/install-linux-assets.sh src-tauri/target/release/mobidevices-app /app/bin mobidevices linux/mobidevices.desktop.in /app/share com.mobidevices.desktop.desktop mobidevices com.mobidevices.desktop src-tauri/icons com.mobidevices.desktop linux/com.mobidevices.desktop.metainfo.xml com.mobidevices.desktop.metainfo.xml
+          - install -Dm644 LICENSE /app/share/licenses/com.mobidevices.desktop/LICENSE
+      sources:
+          - type: file
+            path: ../LICENSE
+          - type: file
+            path: ../src-tauri/Cargo.toml
+            dest: src-tauri
+          - type: file
+            path: ../src-tauri/Cargo.lock
+            dest: src-tauri
+          - type: file
+            path: ../src-tauri/build.rs
+            dest: src-tauri
+          - type: file
+            path: ../src-tauri/tauri.conf.json
+            dest: src-tauri
+          - type: dir
+            path: ../src-tauri/src
+            dest: src-tauri/src
+          - type: dir
+            path: ../src-tauri/capabilities
+            dest: src-tauri/capabilities
+          - type: dir
+            path: ../src-tauri/i18n
+            dest: src-tauri/i18n
+          - type: dir
+            path: ../src-tauri/icons
+            dest: src-tauri/icons
+          - type: file
+            path: ../scripts/install-linux-assets.sh
+            dest: scripts
+          - type: file
+            path: ../linux/mobidevices.desktop.in
+            dest: linux
+          - type: file
+            path: ../linux/com.mobidevices.desktop.metainfo.xml
+            dest: linux
+          - cargo-sources.json

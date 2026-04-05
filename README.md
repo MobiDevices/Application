@@ -51,8 +51,17 @@ npm install
 npm run dev
 npm run build
 npm run build:dmg
+npm run generate:flatpak-sources
+npm run build:flatpak
 npm run validate:linux-assets
 ```
+
+## Flathub
+
+- Flatpak manifest now builds the app from source in [flatpak/com.mobidevices.desktop.yml](flatpak/com.mobidevices.desktop.yml) using [flatpak/cargo-sources.json](flatpak/cargo-sources.json).
+- Refresh vendored Rust sources after any Cargo dependency change with `npm run generate:flatpak-sources`.
+- Local Flatpak build uses `npm run build:flatpak` and requires `flatpak-builder`, `org.gnome.Sdk//47`, `org.gnome.Platform//47`, and `org.freedesktop.Sdk.Extension.rust-stable//24.08`.
+- Hosted screenshots are configured in [linux/com.mobidevices.desktop.metainfo.xml](linux/com.mobidevices.desktop.metainfo.xml) and should stay available at stable public HTTPS URLs.
 
 ## Documentation
 

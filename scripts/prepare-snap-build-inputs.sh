@@ -2,8 +2,8 @@
 set -eu
 
 if [ "$#" -ne 1 ]; then
-  echo "usage: $0 <app-dir>" >&2
-  exit 1
+    echo "usage: $0 <app-dir>" >&2
+    exit 1
 fi
 
 app_dir=$1

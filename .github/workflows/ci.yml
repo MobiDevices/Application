@@ -1,111 +1,111 @@
 name: CI
 
 on:
-  workflow_dispatch:
+    workflow_dispatch:
 
 permissions:
-  contents: read
+    contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: macos-latest
-            args: --target aarch64-apple-darwin --bundles app,dmg
-          - platform: ubuntu-22.04
-            args: --bundles deb,appimage
-          - platform: windows-latest
-            args: --bundles nsis,msi
+    build:
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - platform: macos-latest
+                      args: --target aarch64-apple-darwin --bundles app,dmg
+                    - platform: ubuntu-22.04
+                      args: --bundles deb,appimage
+                    - platform: windows-latest
+                      args: --bundles nsis,msi
 
-    runs-on: ${{ matrix.platform }}
+        runs-on: ${{ matrix.platform }}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: 1.93.1
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  toolchain: 1.93.1
 
-      - name: Install native dependencies (Linux only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            appstream \
-            desktop-file-utils \
-            flatpak \
-            flatpak-builder \
-            libappindicator3-dev \
-            librsvg2-dev \
-            libwebkit2gtk-4.1-dev \
-            patchelf
+            - name: Install native dependencies (Linux only)
+              if: matrix.platform == 'ubuntu-22.04'
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y \
+                    appstream \
+                    desktop-file-utils \
+                    flatpak \
+                    flatpak-builder \
+                    libappindicator3-dev \
+                    librsvg2-dev \
+                    libwebkit2gtk-4.1-dev \
+                    patchelf
 
-      - name: Install Flatpak runtime dependencies (Linux only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          flatpak --user install -y flathub org.freedesktop.Platform//23.08 org.freedesktop.Sdk//23.08
+            - name: Install Flatpak runtime dependencies (Linux only)
+              if: matrix.platform == 'ubuntu-22.04'
+              run: |
+                  flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+                  flatpak --user install -y flathub org.gnome.Platform//47 org.gnome.Sdk//47 org.freedesktop.Sdk.Extension.rust-stable//24.08
 
-      - name: Install app dependencies
-        run: npm install
+            - name: Install app dependencies
+              run: npm install
 
-      - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0.6.2
-        with:
-          projectPath: .
-          args: ${{ matrix.args }}
+            - name: Build Tauri app
+              uses: tauri-apps/tauri-action@v0.6.2
+              with:
+                  projectPath: .
+                  args: ${{ matrix.args }}
 
-      - name: Validate Linux desktop metadata (Linux only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          set -euxo pipefail
-          bash scripts/validate-linux-assets.sh src-tauri/target/release/mobidevices-app
+            - name: Validate Linux desktop metadata (Linux only)
+              if: matrix.platform == 'ubuntu-22.04'
+              run: |
+                  set -euxo pipefail
+                  bash scripts/validate-linux-assets.sh src-tauri/target/release/mobidevices-app
 
-      - name: Prepare Snap build inputs (Linux only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          set -euxo pipefail
-          bash scripts/prepare-snap-build-inputs.sh .
+            - name: Prepare Snap build inputs (Linux only)
+              if: matrix.platform == 'ubuntu-22.04'
+              run: |
+                  set -euxo pipefail
+                  bash scripts/prepare-snap-build-inputs.sh .
 
-      - name: Build Snap package (Linux only)
-        if: matrix.platform == 'ubuntu-22.04'
-        id: snapcraft
-        uses: snapcore/action-build@v1
-        with:
-          path: snap
+            - name: Build Snap package (Linux only)
+              if: matrix.platform == 'ubuntu-22.04'
+              id: snapcraft
+              uses: snapcore/action-build@v1
+              with:
+                  path: snap
 
-      - name: Build Flatpak package (Linux only)
-        if: matrix.platform == 'ubuntu-22.04'
-        working-directory: flatpak
-        run: |
-          set -euxo pipefail
-          flatpak-builder --repo=repo --force-clean build-dir com.mobidevices.desktop.yml
-          flatpak build-bundle repo mobidevices.flatpak com.mobidevices.desktop
+            - name: Build Flatpak package (Linux only)
+              if: matrix.platform == 'ubuntu-22.04'
+              working-directory: flatpak
+              run: |
+                  set -euxo pipefail
+                  flatpak-builder --user --install-deps-from=flathub --repo=repo --force-clean build-dir com.mobidevices.desktop.yml
+                  flatpak build-bundle repo mobidevices.flatpak com.mobidevices.desktop
 
-      - name: Upload CI artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-${{ matrix.platform }}
-          path: |
-            src-tauri/target/**/release/bundle/**/*.deb
-            src-tauri/target/**/release/bundle/**/*.AppImage
-            src-tauri/target/**/release/bundle/**/*.dmg
-            src-tauri/target/**/release/bundle/**/*.app
-            src-tauri/target/**/release/bundle/**/*.msi
-            src-tauri/target/**/release/bundle/**/*.exe
-            src-tauri/target/**/release/bundle/**/*.msix
-            ${{ steps.snapcraft.outputs.snap }}
-            flatpak/*.flatpak
+            - name: Upload CI artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ci-${{ matrix.platform }}
+                  path: |
+                    src-tauri/target/**/release/bundle/**/*.deb
+                    src-tauri/target/**/release/bundle/**/*.AppImage
+                    src-tauri/target/**/release/bundle/**/*.dmg
+                    src-tauri/target/**/release/bundle/**/*.app
+                    src-tauri/target/**/release/bundle/**/*.msi
+                    src-tauri/target/**/release/bundle/**/*.exe
+                    src-tauri/target/**/release/bundle/**/*.msix
+                    ${{ steps.snapcraft.outputs.snap }}
+                    flatpak/*.flatpak
