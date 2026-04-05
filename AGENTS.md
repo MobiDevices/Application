@@ -1,4 +1,4 @@
-# App (Tauri 2 Native Application)
+# MobiDevices (Tauri 2 Native Application)
 
 ## Overview
 

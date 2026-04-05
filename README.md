@@ -1,4 +1,4 @@
-# MobiDevices — App
+# MobiDevices (App)
 
 ## Overview
 
