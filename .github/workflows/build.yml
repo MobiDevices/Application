@@ -21,12 +21,12 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - platform: macos-latest
-                      args: --target aarch64-apple-darwin --bundles app,dmg
+                    # - platform: macos-latest
+                    #   args: --target aarch64-apple-darwin --bundles app,dmg
                     - platform: ubuntu-22.04
                       args: --bundles deb,appimage
-                    - platform: windows-latest
-                      args: --bundles nsis,msi
+                    # - platform: windows-latest
+                    #   args: --bundles nsis,msi
 
         runs-on: ${{ matrix.platform }}
 
@@ -77,7 +77,7 @@ jobs:
                   args: ${{ matrix.args }}
                   tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
                   releaseName: MobiDevices v__VERSION__
-                  releaseBody: Install bundles for Linux, macOS, and Windows are attached to this release.
+                  releaseBody: Install bundles are attached to this release.
                   generateReleaseNotes: true
                   prerelease: false
 

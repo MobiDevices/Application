@@ -16,12 +16,12 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - platform: macos-latest
-                      args: --target aarch64-apple-darwin --bundles app,dmg
+                    # - platform: macos-latest
+                    #   args: --target aarch64-apple-darwin --bundles app,dmg
                     - platform: ubuntu-22.04
                       args: --bundles deb,appimage
-                    - platform: windows-latest
-                      args: --bundles nsis,msi
+                    # - platform: windows-latest
+                    #   args: --bundles nsis,msi
 
         runs-on: ${{ matrix.platform }}
 
