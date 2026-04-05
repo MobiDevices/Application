@@ -1,6 +1,7 @@
 name: Release Tauri App
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
@@ -66,7 +67,8 @@ jobs:
       - name: Install app dependencies
         run: npm install
 
-      - name: Build Tauri app
+      - name: Build and publish Tauri release
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: tauri-apps/tauri-action@v0.6.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,6 +80,13 @@ jobs:
           releaseBody: Install bundles for Linux, macOS, and Windows are attached to this release.
           generateReleaseNotes: true
           prerelease: false
+
+      - name: Build Tauri app
+        if: github.event_name == 'workflow_dispatch'
+        uses: tauri-apps/tauri-action@v0.6.2
+        with:
+          projectPath: .
+          args: ${{ matrix.args }}
 
       - name: Validate Linux desktop metadata (Linux only)
         if: matrix.platform == 'ubuntu-22.04'
@@ -99,7 +108,7 @@ jobs:
           path: snap
 
       - name: Publish Snap to Snap Store
-        if: matrix.platform == 'ubuntu-22.04' && env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        if: matrix.platform == 'ubuntu-22.04' && env.SNAPCRAFT_STORE_CREDENTIALS != '' && startsWith(github.ref, 'refs/tags/v')
         uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ env.SNAPCRAFT_STORE_CREDENTIALS }}
@@ -181,6 +190,7 @@ jobs:
           path: release-artifacts/SHA256SUMS.txt
 
       - name: Upload checksums to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
