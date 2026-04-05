@@ -1,5 +1,5 @@
 fn normalized_window_title<R: tauri::Runtime>(
-    window: &tauri::WebviewWindow<R>,
+    _window: &tauri::WebviewWindow<R>,
     title: &str,
 ) -> Option<String> {
     let normalized = title.trim();
@@ -9,7 +9,7 @@ fn normalized_window_title<R: tauri::Runtime>(
 
     #[cfg(target_os = "macos")]
     let final_title = {
-        let window_width = window
+        let window_width = _window
             .inner_size()
             .map(|size| size.width as usize)
             .unwrap_or(1200);

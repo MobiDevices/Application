@@ -22,7 +22,7 @@
         "shortDescription": "Native desktop access to MobiDevices.com",
         "longDescription": "MobiDevices is a Tauri-based desktop application for browsing the latest gadget news, reviews, and technology coverage from MobiDevices.com with native window management, external-link handling, and persistent window state.",
         "license": "MIT",
-        "licenseFile": "../../LICENSE",
+        "licenseFile": "../LICENSE",
         "icon": [
             "icons/32x32.png",
             "icons/128x128.png",
