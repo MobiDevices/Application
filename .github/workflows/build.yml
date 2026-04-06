@@ -107,6 +107,17 @@ jobs:
                   bash flatpak/build.sh "$flatpak_bundle_path"
                   echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
 
+            - name: Export Flathub submission bundle (Linux release only)
+              if: matrix.platform == 'ubuntu-22.04' && startsWith(github.ref, 'refs/tags/v')
+              id: flathub_submission
+              run: |
+                  set -euxo pipefail
+                  submission_dir="$RUNNER_TEMP/flathub-submission"
+                  archive_path="$RUNNER_TEMP/mobidevices-flathub-submission-${GITHUB_REF_NAME}.tar.gz"
+                  bash flatpak/export-flathub-submission.sh "$GITHUB_REF_NAME" "$submission_dir"
+                  tar -C "$submission_dir" -czf "$archive_path" .
+                  echo "archive=$archive_path" >> "$GITHUB_OUTPUT"
+
             # Snap packaging
             - name: Prepare Snap build inputs (Linux only)
               if: matrix.platform == 'ubuntu-22.04'
@@ -145,6 +156,7 @@ jobs:
                     src-tauri/target/**/release/bundle/**/*.msix
                     ${{ steps.snapcraft.outputs.snap }}
                     ${{ steps.flatpak.outputs.bundle }}
+                    ${{ steps.flathub_submission.outputs.archive }}
 
             - name: Upload Linux store bundles to GitHub release
               if: matrix.platform == 'ubuntu-22.04' && startsWith(github.ref, 'refs/tags/v')
@@ -155,6 +167,7 @@ jobs:
                   gh release upload "$GITHUB_REF_NAME" \
                     "${{ steps.snapcraft.outputs.snap }}" \
                     "${{ steps.flatpak.outputs.bundle }}" \
+                    "${{ steps.flathub_submission.outputs.archive }}" \
                     --clobber
 
     checksums:
@@ -180,7 +193,8 @@ jobs:
                     -name '*.exe' -o \
                     -name '*.msix' -o \
                     -name '*.snap' -o \
-                    -name '*.flatpak' \
+                    -name '*.flatpak' -o \
+                    -name '*.tar.gz' \
                   \) -print0 | sort -z)
 
                   if [ "${#files[@]}" -eq 0 ]; then

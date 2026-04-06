@@ -1,17 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2026 MobiDevices -->
 <component type="desktop-application">
     <id>com.mobidevices.desktop</id>
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>MIT</project_license>
     <name>MobiDevices</name>
-    <summary>Native desktop access to MobiDevices.com</summary>
+    <summary>Official desktop client for MobiDevices.com</summary>
     <developer_name>MobiDevices</developer_name>
     <launchable type="desktop-id">com.mobidevices.desktop.desktop</launchable>
     <update_contact>md@mobidevices.com</update_contact>
 
     <description>
-        <p>MobiDevices is a Tauri-based desktop application for reading the latest gadget news, reviews, and technology coverage from MobiDevices.com in a lightweight native window.</p>
-        <p>The app keeps the live website experience while adding desktop-native navigation, external-link handling, and persistent window state across Linux, macOS, and Windows.</p>
+        <p>MobiDevices is the official Tauri-based desktop client for MobiDevices.com, bringing the publication into a dedicated native window instead of a browser tab.</p>
+        <p>The app preserves the live website experience while adding desktop-native behavior around it.</p>
+        <ul>
+            <li>Opens external links in the default browser</li>
+            <li>Provides localized native navigation actions</li>
+            <li>Keeps the window title in sync with the current page</li>
+            <li>Restores the previous desktop window size and position</li>
+        </ul>
     </description>
 
     <screenshots>
@@ -53,8 +60,9 @@
 
     <releases>
         <release version="1.0.0" date="2026-04-04">
+            <url type="details">https://github.com/MobiDevices/MobiDevices-app/releases/tag/v1.0.0</url>
             <description>
-                <p>Initial desktop release with Linux packaging metadata for Snap, Flatpak, AUR, Debian, AppImage, and GitHub Releases.</p>
+                <p>Initial desktop release for MobiDevices.com with native navigation, external-link handling, window title sync, and persistent window state.</p>
             </description>
         </release>
     </releases>

@@ -1,0 +1,36 @@
+app-id: com.mobidevices.desktop
+runtime: org.gnome.Platform
+runtime-version: '50'
+sdk: org.gnome.Sdk
+sdk-extensions:
+    - org.freedesktop.Sdk.Extension.rust-stable
+command: mobidevices
+
+finish-args:
+    - --share=network
+    - --share=ipc
+    - --socket=fallback-x11
+    - --socket=wayland
+    - --device=dri
+    - --socket=pulseaudio
+    - --talk-name=org.freedesktop.Notifications
+
+modules:
+    - name: mobidevices
+      buildsystem: simple
+      build-options:
+          append-path: /usr/lib/sdk/rust-stable/bin
+          env:
+              CARGO_HOME: /run/build/mobidevices/cargo
+              CARGO_NET_OFFLINE: 'true'
+      build-commands:
+          - cargo --offline fetch --manifest-path src-tauri/Cargo.toml --locked --verbose
+          - cargo --offline build --manifest-path src-tauri/Cargo.toml --release --locked
+          - sh linux/install-assets.sh src-tauri/target/release/mobidevices-app /app/bin mobidevices linux/mobidevices.desktop.in /app/share com.mobidevices.desktop.desktop mobidevices com.mobidevices.desktop src-tauri/icons com.mobidevices.desktop linux/com.mobidevices.desktop.metainfo.xml com.mobidevices.desktop.metainfo.xml
+          - install -Dm644 LICENSE /app/share/licenses/com.mobidevices.desktop/LICENSE
+      sources:
+          - type: git
+            url: https://github.com/MobiDevices/MobiDevices-app.git
+            tag: @UPSTREAM_TAG@
+            commit: @UPSTREAM_COMMIT@
+          - cargo-sources.json
