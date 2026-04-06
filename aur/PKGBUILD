@@ -24,7 +24,7 @@ build() {
 package() {
     install -Dm644 "$srcdir/MobiDevices-app-$pkgver/LICENSE" "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 
-    sh "$srcdir/MobiDevices-app-$pkgver/scripts/install-linux-assets.sh" \
+    sh "$srcdir/MobiDevices-app-$pkgver/linux/install-assets.sh" \
         "$srcdir/MobiDevices-app-$pkgver/src-tauri/target/release/mobidevices-app" \
         "$pkgdir/usr/bin" \
         mobidevices \

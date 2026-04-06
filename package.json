@@ -15,13 +15,13 @@
         "tauri": "tauri",
         "dev": "tauri dev",
         "build": "tauri build --bundles app",
-        "build:dmg": "bash scripts/clean-dmg-mounts.sh && tauri build --bundles dmg",
-        "build:flatpak": "flatpak-builder --user --install-deps-from=flathub --force-clean flatpak/build-dir flatpak/com.mobidevices.desktop.yml",
-        "generate:flatpak-sources": "bash scripts/generate-flatpak-cargo-sources.sh",
-        "validate:linux-assets": "bash scripts/validate-linux-assets.sh src-tauri/target/release/mobidevices-app"
+        "build:dmg": "bash macos/clean-dmg-mounts.sh && tauri build --bundles dmg",
+        "build:flatpak": "sh flatpak/build.sh",
+        "generate:flatpak-sources": "bash flatpak/generate-cargo-sources.sh",
+        "validate:linux-assets": "bash linux/validate-assets.sh"
     },
     "devDependencies": {
-        "@tauri-apps/cli": "2.10.0"
+        "@tauri-apps/cli": "2.10.1"
     },
     "dependencies": {
         "@tauri-apps/api": "2.10.1"

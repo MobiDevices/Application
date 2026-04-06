@@ -21,9 +21,8 @@ Allowed by default:
 - `src-tauri/tauri.conf.json`
 - `src-tauri/Cargo.toml`
 - `src-tauri/build.rs`
-- `scripts/`
 - `package.json`
-- `flatpak/`, `snap/`, `aur/`, `linux/`, `debian/`
+- `flatpak/`, `snap/`, `aur/`, `linux/`, `debian/`, `macos/`
 
 Do not edit unless explicitly requested:
 

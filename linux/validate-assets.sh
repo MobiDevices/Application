@@ -1,8 +1,8 @@
 #!/bin/sh
 set -eu
 
-if [ "$#" -ne 1 ]; then
-    echo "usage: $0 <binary-src>" >&2
+if [ "$#" -gt 1 ]; then
+    echo "usage: $0 [<binary-src>]" >&2
     exit 1
 fi
 
@@ -16,13 +16,20 @@ if ! command -v appstreamcli >/dev/null 2>&1; then
     exit 1
 fi
 
-binary_src=$1
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 app_root=$(CDPATH= cd -- "$script_dir/.." && pwd)
 tmp_root=$(mktemp -d "${TMPDIR:-/tmp}/mobidevices-linux-assets.XXXXXX")
 trap 'rm -rf "$tmp_root"' EXIT INT TERM
 
-"$script_dir/install-linux-assets.sh" \
+if [ "$#" -eq 1 ]; then
+    binary_src=$1
+else
+    binary_src="$tmp_root/mobidevices"
+    printf '%s\n' '#!/bin/sh' 'exit 0' > "$binary_src"
+    chmod 755 "$binary_src"
+fi
+
+sh "$script_dir/install-assets.sh" \
     "$binary_src" \
     "$tmp_root/usr/bin" \
     mobidevices \

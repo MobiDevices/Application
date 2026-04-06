@@ -1,10 +1,11 @@
 app-id: com.mobidevices.desktop
 runtime: org.gnome.Platform
-runtime-version: '47'
+runtime-version: '50'
 sdk: org.gnome.Sdk
 sdk-extensions:
     - org.freedesktop.Sdk.Extension.rust-stable
 command: mobidevices
+appstream-compose: false
 
 finish-args:
     - --share=network
@@ -26,7 +27,7 @@ modules:
       build-commands:
           - cargo --offline fetch --manifest-path src-tauri/Cargo.toml --locked --verbose
           - cargo --offline build --manifest-path src-tauri/Cargo.toml --release --locked
-          - sh scripts/install-linux-assets.sh src-tauri/target/release/mobidevices-app /app/bin mobidevices linux/mobidevices.desktop.in /app/share com.mobidevices.desktop.desktop mobidevices com.mobidevices.desktop src-tauri/icons com.mobidevices.desktop linux/com.mobidevices.desktop.metainfo.xml com.mobidevices.desktop.metainfo.xml
+          - sh linux/install-assets.sh src-tauri/target/release/mobidevices-app /app/bin mobidevices linux/mobidevices.desktop.in /app/share com.mobidevices.desktop.desktop mobidevices com.mobidevices.desktop src-tauri/icons com.mobidevices.desktop linux/com.mobidevices.desktop.metainfo.xml com.mobidevices.desktop.metainfo.xml
           - install -Dm644 LICENSE /app/share/licenses/com.mobidevices.desktop/LICENSE
       sources:
           - type: file
@@ -56,8 +57,8 @@ modules:
             path: ../src-tauri/icons
             dest: src-tauri/icons
           - type: file
-            path: ../scripts/install-linux-assets.sh
-            dest: scripts
+            path: ../linux/install-assets.sh
+            dest: linux
           - type: file
             path: ../linux/mobidevices.desktop.in
             dest: linux

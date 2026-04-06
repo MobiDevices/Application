@@ -25,3 +25,17 @@ trap 'rm -f "$tmp_script"' EXIT INT TERM
 
 curl -fsSL "$generator_url" -o "$tmp_script"
 python3 "$tmp_script" "$app_root/src-tauri/Cargo.lock" -o "$app_root/flatpak/cargo-sources.json"
+python3 - "$app_root/flatpak/cargo-sources.json" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+old = '"dest-filename": "config"'
+new = '"dest-filename": "config.toml"'
+contents = path.read_text()
+
+if old not in contents:
+    raise SystemExit('expected cargo config entry not found in cargo-sources.json')
+
+path.write_text(contents.replace(old, new, 1))
+PY

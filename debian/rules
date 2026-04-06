@@ -10,7 +10,7 @@ override_dh_auto_build:
 	npm run build
 
 override_dh_auto_install:
-	sh scripts/install-linux-assets.sh \
+	sh linux/install-assets.sh \
 		src-tauri/target/release/mobidevices-app \
 		debian/mobidevices/usr/bin \
 		mobidevices \

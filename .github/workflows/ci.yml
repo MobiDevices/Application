@@ -26,6 +26,7 @@ jobs:
         runs-on: ${{ matrix.platform }}
 
         steps:
+            # Source and toolchain setup
             - name: Checkout repository
               uses: actions/checkout@v4
 
@@ -38,6 +39,9 @@ jobs:
               uses: dtolnay/rust-toolchain@stable
               with:
                   toolchain: 1.93.1
+
+            - name: Install app dependencies
+              run: npm install
 
             - name: Install native dependencies (Linux only)
               if: matrix.platform == 'ubuntu-22.04'
@@ -53,32 +57,42 @@ jobs:
                     libwebkit2gtk-4.1-dev \
                     patchelf
 
-            - name: Install Flatpak runtime dependencies (Linux only)
+            # Linux metadata validation
+            - name: Validate Linux desktop metadata (Linux only)
               if: matrix.platform == 'ubuntu-22.04'
               run: |
-                  flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-                  flatpak --user install -y flathub org.gnome.Platform//47 org.gnome.Sdk//47 org.freedesktop.Sdk.Extension.rust-stable//24.08
+                  set -euxo pipefail
+                  bash linux/validate-assets.sh
 
-            - name: Install app dependencies
-              run: npm install
-
+            # Tauri bundle build
             - name: Build Tauri app
               uses: tauri-apps/tauri-action@v0.6.2
               with:
                   projectPath: .
                   args: ${{ matrix.args }}
 
-            - name: Validate Linux desktop metadata (Linux only)
+            # Flatpak packaging
+            - name: Install Flatpak runtime dependencies (Linux only)
               if: matrix.platform == 'ubuntu-22.04'
               run: |
-                  set -euxo pipefail
-                  bash scripts/validate-linux-assets.sh src-tauri/target/release/mobidevices-app
+                  flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+                  flatpak --user install -y flathub org.gnome.Platform//50 org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
 
+            - name: Build Flatpak package (Linux only)
+              if: matrix.platform == 'ubuntu-22.04'
+              id: flatpak
+              run: |
+                  set -euxo pipefail
+                  flatpak_bundle_path="$RUNNER_TEMP/mobidevices.flatpak"
+                  bash flatpak/build.sh "$flatpak_bundle_path"
+                  echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
+
+            # Snap packaging
             - name: Prepare Snap build inputs (Linux only)
               if: matrix.platform == 'ubuntu-22.04'
               run: |
                   set -euxo pipefail
-                  bash scripts/prepare-snap-build-inputs.sh .
+                  bash snap/prepare-build-inputs.sh .
 
             - name: Build Snap package (Linux only)
               if: matrix.platform == 'ubuntu-22.04'
@@ -87,14 +101,7 @@ jobs:
               with:
                   path: snap
 
-            - name: Build Flatpak package (Linux only)
-              if: matrix.platform == 'ubuntu-22.04'
-              working-directory: flatpak
-              run: |
-                  set -euxo pipefail
-                  flatpak-builder --user --install-deps-from=flathub --repo=repo --force-clean build-dir com.mobidevices.desktop.yml
-                  flatpak build-bundle repo mobidevices.flatpak com.mobidevices.desktop
-
+            # Artifact upload
             - name: Upload CI artifacts
               uses: actions/upload-artifact@v4
               with:
@@ -108,4 +115,4 @@ jobs:
                     src-tauri/target/**/release/bundle/**/*.exe
                     src-tauri/target/**/release/bundle/**/*.msix
                     ${{ steps.snapcraft.outputs.snap }}
-                    flatpak/*.flatpak
+                    ${{ steps.flatpak.outputs.bundle }}

@@ -6,3 +6,8 @@ src-tauri/gen/
 *.apk
 *.dmg
 *.app
+*.exe
+*.deb
+*.flatpak
+*.snap
+snap/.ci/
