@@ -28,10 +28,10 @@ jobs:
         steps:
             # Source and toolchain setup
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Setup Node.js
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: 22
 
@@ -88,22 +88,25 @@ jobs:
                   echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
 
             # Snap packaging
-            - name: Prepare Snap build inputs (Linux only)
+            - name: Install Snapcraft (Linux only)
               if: matrix.platform == 'ubuntu-22.04'
               run: |
                   set -euxo pipefail
-                  bash snap/prepare-build-inputs.sh .
+                  sudo snap install snapcraft --classic
+                  echo /snap/bin >> "$GITHUB_PATH"
 
             - name: Build Snap package (Linux only)
               if: matrix.platform == 'ubuntu-22.04'
               id: snapcraft
-              uses: snapcore/action-build@v1
-              with:
-                  path: snap
+              run: |
+                  set -euxo pipefail
+                  snap_path="$RUNNER_TEMP/mobidevices.snap"
+                  bash snap/build.sh "$snap_path"
+                  echo "snap=$snap_path" >> "$GITHUB_OUTPUT"
 
             # Artifact upload
             - name: Upload CI artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: ci-${{ matrix.platform }}
                   path: |
