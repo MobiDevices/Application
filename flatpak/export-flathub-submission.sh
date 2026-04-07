@@ -22,7 +22,7 @@ if [ ! -f "$cargo_sources_path" ]; then
 fi
 
 tag=${1:-}
-out_dir=${2:-}
+out_dir=${2:-${FLATHUB_SUBMISSION_DIR:-}}
 
 if [ -z "$tag" ]; then
     tag=$(git -C "$app_root" describe --tags --abbrev=0)
@@ -36,7 +36,7 @@ fi
 commit=$(git -C "$app_root" rev-list -n 1 "$tag")
 
 if [ -z "$out_dir" ]; then
-    out_dir=$(mktemp -d "${TMPDIR:-/tmp}/mobidevices-flathub-submission.XXXXXX")
+    out_dir="$app_root/dist/flathub/$tag"
 fi
 
 mkdir -p "$out_dir"

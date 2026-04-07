@@ -18,8 +18,7 @@ temp_root=${RUNNER_TEMP:-${TMPDIR:-/tmp}}
 flatpak_bundle_path=${1:-${FLATPAK_BUNDLE_PATH:-}}
 
 if [ -z "$flatpak_bundle_path" ]; then
-    bundle_dir=$(mktemp -d "$temp_root/mobidevices-flatpak-bundle.XXXXXX")
-    flatpak_bundle_path="$bundle_dir/mobidevices.flatpak"
+    flatpak_bundle_path="$app_root/dist/flatpak/mobidevices.flatpak"
 fi
 
 state_dir=$(mktemp -d "$temp_root/mobidevices-flatpak-state.XXXXXX")
