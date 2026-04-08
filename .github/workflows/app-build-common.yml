@@ -1,37 +1,45 @@
-name: Release Tauri App
+name: App Build Common
 
 on:
-    workflow_dispatch:
-    push:
-        tags:
-            - 'v*'
-
-permissions:
-    contents: write
-
-concurrency:
-    group: release-${{ github.ref }}
-    cancel-in-progress: true
+    workflow_call:
+        inputs:
+            artifact_prefix:
+                required: true
+                type: string
+            publish_release:
+                required: false
+                type: boolean
+                default: false
 
 jobs:
     build:
+        name: Build ${{ matrix.asset_dir }}
         env:
             SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         strategy:
             fail-fast: false
             matrix:
                 include:
-                    # - platform: macos-latest
-                    #   args: --target aarch64-apple-darwin --bundles app,dmg
                     - platform: ubuntu-24.04
                       args: --bundles appimage
+                      asset_dir: linux-x64
+                      snap_bundle_name: mobidevices-linux-x64.snap
+                      flatpak_bundle_name: mobidevices-linux-x64.flatpak
+                      build_flathub_submission: true
+                    - platform: ubuntu-24.04-arm
+                      args: --bundles appimage
+                      asset_dir: linux-arm64
+                      snap_bundle_name: mobidevices-linux-arm64.snap
+                      flatpak_bundle_name: mobidevices-linux-arm64.flatpak
+                      build_flathub_submission: false
+                    # - platform: macos-latest
+                    #   args: --target aarch64-apple-darwin --bundles app,dmg
                     # - platform: windows-latest
                     #   args: --bundles nsis,msi
 
         runs-on: ${{ matrix.platform }}
 
         steps:
-            # Source and toolchain setup
             - name: Checkout repository
               uses: actions/checkout@v6
 
@@ -67,30 +75,27 @@ jobs:
                     libwebkit2gtk-4.1-dev \
                     patchelf
 
-            # Linux metadata validation
             - name: Validate Linux desktop metadata (Linux only)
               if: startsWith(matrix.platform, 'ubuntu-')
               run: |
                   set -euxo pipefail
                   bash linux/validate-assets.sh
 
-            # Tauri bundle build
-            - name: Build and publish Tauri release
-              if: startsWith(github.ref, 'refs/tags/v')
-              uses: tauri-apps/tauri-action@v0.6.2
+            - name: Ensure GitHub release exists
+              if: inputs.publish_release && startsWith(github.ref, 'refs/tags/v')
               env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  projectPath: .
-                  args: ${{ matrix.args }}
-                  tagName: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || '' }}
-                  releaseName: MobiDevices v__VERSION__
-                  releaseBody: Install bundles are attached to this release.
-                  generateReleaseNotes: true
-                  prerelease: false
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euxo pipefail
+
+                  if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+                      gh release create "$GITHUB_REF_NAME" \
+                        --title "MobiDevices $GITHUB_REF_NAME" \
+                        --generate-notes || \
+                      gh release view "$GITHUB_REF_NAME" >/dev/null
+                  fi
 
             - name: Build Tauri app
-              if: github.event_name == 'workflow_dispatch'
               uses: tauri-apps/tauri-action@v0.6.2
               with:
                   projectPath: .
@@ -115,7 +120,6 @@ jobs:
                   [ -n "$deb_path" ]
                   echo "deb=$deb_path" >> "$GITHUB_OUTPUT"
 
-            # Flatpak packaging
             - name: Install Flatpak runtime dependencies (Linux only)
               if: startsWith(matrix.platform, 'ubuntu-')
               run: |
@@ -127,12 +131,12 @@ jobs:
               id: flatpak
               run: |
                   set -euxo pipefail
-                  flatpak_bundle_path="$RUNNER_TEMP/mobidevices.flatpak"
+                  flatpak_bundle_path="$RUNNER_TEMP/${{ matrix.flatpak_bundle_name }}"
                   bash flatpak/build.sh "$flatpak_bundle_path"
                   echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
 
             - name: Export Flathub submission bundle (Linux release only)
-              if: startsWith(matrix.platform, 'ubuntu-') && startsWith(github.ref, 'refs/tags/v')
+              if: startsWith(matrix.platform, 'ubuntu-') && inputs.publish_release && matrix.build_flathub_submission && startsWith(github.ref, 'refs/tags/v')
               id: flathub_submission
               run: |
                   set -euxo pipefail
@@ -142,7 +146,6 @@ jobs:
                   tar -C "$submission_dir" -czf "$archive_path" .
                   echo "archive=$archive_path" >> "$GITHUB_OUTPUT"
 
-            # Snap packaging
             - name: Install Snapcraft (Linux only)
               if: startsWith(matrix.platform, 'ubuntu-')
               run: |
@@ -165,7 +168,7 @@ jobs:
                   sudo iptables -P FORWARD ACCEPT
 
                   if snap list snapcraft >/dev/null 2>&1; then
-                        sudo snap refresh snapcraft || true
+                      sudo snap refresh snapcraft || true
                   else
                       sudo snap install snapcraft --classic
                   fi
@@ -179,24 +182,23 @@ jobs:
                   SNAPCRAFT_BUILD_PROVIDER: lxd
               run: |
                   set -euxo pipefail
-                  snap_path="$RUNNER_TEMP/mobidevices.snap"
+                  snap_path="$RUNNER_TEMP/${{ matrix.snap_bundle_name }}"
                   export SNAPCRAFT_BUILD_INFO=1
                   export SNAPCRAFT_IMAGE_INFO="$(printf '{\"build_url\":\"https://github.com/%s/actions/runs/%s\"}' "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")"
                   sudo -u "$USER" -E bash snap/build.sh "$snap_path"
                   echo "snap=$snap_path" >> "$GITHUB_OUTPUT"
 
-            # Publishing and artifact upload
             - name: Publish Snap to Snap Store
-              if: startsWith(matrix.platform, 'ubuntu-') && env.SNAPCRAFT_STORE_CREDENTIALS != '' && startsWith(github.ref, 'refs/tags/v')
+              if: startsWith(matrix.platform, 'ubuntu-') && inputs.publish_release && env.SNAPCRAFT_STORE_CREDENTIALS != '' && startsWith(github.ref, 'refs/tags/v')
               env:
                   SNAPCRAFT_STORE_CREDENTIALS: ${{ env.SNAPCRAFT_STORE_CREDENTIALS }}
               run: |
                   set -euxo pipefail
                   snapcraft upload --release=stable "${{ steps.snapcraft.outputs.snap }}"
 
-            - name: Stage release assets
+            - name: Stage build assets
               if: startsWith(matrix.platform, 'ubuntu-')
-              id: release_assets
+              id: staged_assets
               env:
                   DEB_PATH: ${{ steps.debian.outputs.deb }}
                   SNAP_PATH: ${{ steps.snapcraft.outputs.snap }}
@@ -205,79 +207,44 @@ jobs:
               run: |
                   set -euxo pipefail
                   release_root="$GITHUB_WORKSPACE/dist/release"
-                  stage_dir="$release_root/linux"
+                  stage_dir="$release_root/${{ matrix.asset_dir }}"
                   rm -rf "$stage_dir"
                   mkdir -p "$stage_dir"
 
                   find "$GITHUB_WORKSPACE/src-tauri/target" -type f -name '*.AppImage' -exec cp {} "$stage_dir/" \;
 
                   for asset in "$DEB_PATH" "$SNAP_PATH" "$FLATPAK_PATH" "$FLATHUB_ARCHIVE"; do
-                      [ -n "$asset" ] || continue
-                      cp "$asset" "$stage_dir/"
+                    [ -n "$asset" ] || continue
+                    cp "$asset" "$stage_dir/"
                   done
 
+                  staged_file=$(find "$stage_dir" -maxdepth 1 -type f -print -quit)
+                  [ -n "$staged_file" ]
+
                   echo "dir=$release_root" >> "$GITHUB_OUTPUT"
+                  echo "stage_dir=$stage_dir" >> "$GITHUB_OUTPUT"
 
             - name: Upload build artifacts
               uses: actions/upload-artifact@v6
               with:
-                  name: release-${{ matrix.platform }}
-                  path: ${{ steps.release_assets.outputs.dir }}/**
+                  name: ${{ inputs.artifact_prefix }}-${{ matrix.asset_dir }}
+                  path: ${{ steps.staged_assets.outputs.dir }}/**
                   if-no-files-found: error
 
             - name: Upload Linux store bundles to GitHub release
-              if: startsWith(matrix.platform, 'ubuntu-') && startsWith(github.ref, 'refs/tags/v')
+              if: startsWith(matrix.platform, 'ubuntu-') && inputs.publish_release && startsWith(github.ref, 'refs/tags/v')
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   set -euxo pipefail
-                  release_dir="${{ steps.release_assets.outputs.dir }}/linux"
-                  gh release upload "$GITHUB_REF_NAME" "$release_dir"/* --clobber
-
-    checksums:
-        needs: build
-        runs-on: ubuntu-24.04
-
-        steps:
-            - name: Download release artifacts
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: release-*
-                  path: release-artifacts
-                  merge-multiple: true
-
-            - name: Generate SHA256SUMS
-              run: |
-                  set -euxo pipefail
-                  mapfile -d '' files < <(find release-artifacts -type f \( \
-                    -name '*.deb' -o \
+                  release_dir="${{ steps.staged_assets.outputs.stage_dir }}"
+                  mapfile -d '' release_files < <(find "$release_dir" -maxdepth 1 -type f \( \
                     -name '*.AppImage' -o \
-                    -name '*.dmg' -o \
-                    -name '*.msi' -o \
-                    -name '*.exe' -o \
-                    -name '*.msix' -o \
+                    -name '*.deb' -o \
                     -name '*.snap' -o \
                     -name '*.flatpak' -o \
                     -name '*.tar.gz' \
                   \) -print0 | sort -z)
 
-                  if [ "${#files[@]}" -eq 0 ]; then
-                      echo "No release artifacts found for checksum generation" >&2
-                      exit 1
-                  fi
-
-                  sha256sum "${files[@]}" > release-artifacts/SHA256SUMS.txt
-
-            - name: Upload checksum artifact
-              uses: actions/upload-artifact@v6
-              with:
-                  name: release-checksums
-                  path: release-artifacts/SHA256SUMS.txt
-
-            - name: Upload checksums to GitHub release
-              if: startsWith(github.ref, 'refs/tags/v')
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  set -euxo pipefail
-                  gh release upload "$GITHUB_REF_NAME" release-artifacts/SHA256SUMS.txt --clobber
+                  [ "${#release_files[@]}" -gt 0 ]
+                  gh release upload "$GITHUB_REF_NAME" "${release_files[@]}" --clobber

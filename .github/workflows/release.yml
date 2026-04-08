@@ -1,0 +1,72 @@
+name: Release
+
+on:
+    workflow_dispatch:
+    push:
+        tags:
+            - 'v*'
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build_artifacts:
+        permissions:
+            contents: write
+        uses: ./.github/workflows/app-build-common.yml
+        with:
+            artifact_prefix: release
+            publish_release: true
+        secrets: inherit
+
+    checksums:
+        needs: build_artifacts
+        runs-on: ubuntu-24.04
+
+        steps:
+            - name: Download release artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: release-*
+                  path: release-artifacts
+                  merge-multiple: true
+
+            - name: Generate SHA256SUMS
+              run: |
+                  set -euxo pipefail
+                  mapfile -d '' files < <(find release-artifacts -type f \( \
+                    -name '*.deb' -o \
+                    -name '*.AppImage' -o \
+                    -name '*.dmg' -o \
+                    -name '*.msi' -o \
+                    -name '*.exe' -o \
+                    -name '*.msix' -o \
+                    -name '*.snap' -o \
+                    -name '*.flatpak' -o \
+                    -name '*.tar.gz' \
+                  \) -print0 | sort -z)
+
+                  if [ "${#files[@]}" -eq 0 ]; then
+                      echo "No release artifacts found for checksum generation" >&2
+                      exit 1
+                  fi
+
+                  sha256sum "${files[@]}" > release-artifacts/SHA256SUMS.txt
+
+            - name: Upload checksum artifact
+              uses: actions/upload-artifact@v6
+              with:
+                  name: release-checksums
+                  path: release-artifacts/SHA256SUMS.txt
+
+            - name: Upload checksums to GitHub release
+              if: startsWith(github.ref, 'refs/tags/v')
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euxo pipefail
+                  gh release upload "$GITHUB_REF_NAME" release-artifacts/SHA256SUMS.txt --clobber
