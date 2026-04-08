@@ -59,6 +59,7 @@ npm run validate:linux-assets
 ## Build Outputs
 
 - Native Tauri bundles are produced under `src-tauri/target/release/bundle/`.
+- Linux `.deb` packages in CI and tagged releases are built from the Debian packaging under `debian/` via `dpkg-buildpackage`, then staged under `dist/release/linux/`.
 - Local Flatpak builds now write the final bundle to `dist/flatpak/mobidevices.flatpak` by default.
 - Local Snap builds now write the final package to `dist/snap/mobidevices.snap` by default.
 - Local Flathub submission export now writes to `dist/flathub/<tag>/` by default.
@@ -68,6 +69,7 @@ npm run validate:linux-assets
 
 - Packaging helpers live next to their platform or packaging format under `linux/`, `flatpak/`, `snap/`, and `macos/`.
 - Linux packaging assets are centralized in `linux/install-assets.sh` and reused by Flatpak, Snap, Debian, AUR, and metadata validation.
+- Release `.deb` packages use the Debian source package metadata in `debian/`, which keeps the package name at `mobidevices` and aligns desktop/AppStream assets with the rest of the Linux packaging.
 
 ## Flathub
 

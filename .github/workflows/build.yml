@@ -23,8 +23,8 @@ jobs:
                 include:
                     # - platform: macos-latest
                     #   args: --target aarch64-apple-darwin --bundles app,dmg
-                    - platform: ubuntu-22.04
-                      args: --bundles deb,appimage
+                    - platform: ubuntu-24.04
+                      args: --bundles appimage
                     # - platform: windows-latest
                     #   args: --bundles nsis,msi
 
@@ -49,12 +49,17 @@ jobs:
               run: npm install
 
             - name: Install native dependencies (Linux only)
-              if: matrix.platform == 'ubuntu-22.04'
+              if: startsWith(matrix.platform, 'ubuntu-')
               run: |
                   sudo apt-get update
                   sudo apt-get install -y \
                     appstream \
+                    build-essential \
+                    cargo \
+                    debhelper \
                     desktop-file-utils \
+                    dpkg-dev \
+                    fakeroot \
                     flatpak \
                     flatpak-builder \
                     libappindicator3-dev \
@@ -64,7 +69,7 @@ jobs:
 
             # Linux metadata validation
             - name: Validate Linux desktop metadata (Linux only)
-              if: matrix.platform == 'ubuntu-22.04'
+              if: startsWith(matrix.platform, 'ubuntu-')
               run: |
                   set -euxo pipefail
                   bash linux/validate-assets.sh
@@ -91,15 +96,34 @@ jobs:
                   projectPath: .
                   args: ${{ matrix.args }}
 
+            - name: Build Debian package (Linux only)
+              if: startsWith(matrix.platform, 'ubuntu-')
+              id: debian
+              run: |
+                  set -euxo pipefail
+                  deb_output_dir="$RUNNER_TEMP/deb"
+                  rm -rf "$deb_output_dir"
+                  mkdir -p "$deb_output_dir"
+                  find "$GITHUB_WORKSPACE/.." -maxdepth 1 -type f \( \
+                    -name 'mobidevices_*.deb' -o \
+                    -name 'mobidevices_*.buildinfo' -o \
+                    -name 'mobidevices_*.changes' \
+                  \) -delete
+                  dpkg-buildpackage -us -uc -b
+                  find "$GITHUB_WORKSPACE/.." -maxdepth 1 -type f -name 'mobidevices_*.deb' -exec mv {} "$deb_output_dir/" \;
+                  deb_path=$(find "$deb_output_dir" -maxdepth 1 -type f -name 'mobidevices_*.deb' -print -quit)
+                  [ -n "$deb_path" ]
+                  echo "deb=$deb_path" >> "$GITHUB_OUTPUT"
+
             # Flatpak packaging
             - name: Install Flatpak runtime dependencies (Linux only)
-              if: matrix.platform == 'ubuntu-22.04'
+              if: startsWith(matrix.platform, 'ubuntu-')
               run: |
                   flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
                   flatpak --user install -y flathub org.gnome.Platform//50 org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
 
             - name: Build Flatpak package (Linux only)
-              if: matrix.platform == 'ubuntu-22.04'
+              if: startsWith(matrix.platform, 'ubuntu-')
               id: flatpak
               run: |
                   set -euxo pipefail
@@ -108,7 +132,7 @@ jobs:
                   echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
 
             - name: Export Flathub submission bundle (Linux release only)
-              if: matrix.platform == 'ubuntu-22.04' && startsWith(github.ref, 'refs/tags/v')
+              if: startsWith(matrix.platform, 'ubuntu-') && startsWith(github.ref, 'refs/tags/v')
               id: flathub_submission
               run: |
                   set -euxo pipefail
@@ -120,7 +144,7 @@ jobs:
 
             # Snap packaging
             - name: Install Snapcraft (Linux only)
-              if: matrix.platform == 'ubuntu-22.04'
+              if: startsWith(matrix.platform, 'ubuntu-')
               run: |
                   set -euxo pipefail
 
@@ -149,7 +173,7 @@ jobs:
                   echo /snap/bin >> "$GITHUB_PATH"
 
             - name: Build Snap package (Linux only)
-              if: matrix.platform == 'ubuntu-22.04'
+              if: startsWith(matrix.platform, 'ubuntu-')
               id: snapcraft
               env:
                   SNAPCRAFT_BUILD_PROVIDER: lxd
@@ -163,7 +187,7 @@ jobs:
 
             # Publishing and artifact upload
             - name: Publish Snap to Snap Store
-              if: matrix.platform == 'ubuntu-22.04' && env.SNAPCRAFT_STORE_CREDENTIALS != '' && startsWith(github.ref, 'refs/tags/v')
+              if: startsWith(matrix.platform, 'ubuntu-') && env.SNAPCRAFT_STORE_CREDENTIALS != '' && startsWith(github.ref, 'refs/tags/v')
               env:
                   SNAPCRAFT_STORE_CREDENTIALS: ${{ env.SNAPCRAFT_STORE_CREDENTIALS }}
               run: |
@@ -171,9 +195,10 @@ jobs:
                   snapcraft upload --release=stable "${{ steps.snapcraft.outputs.snap }}"
 
             - name: Stage release assets
-              if: matrix.platform == 'ubuntu-22.04'
+              if: startsWith(matrix.platform, 'ubuntu-')
               id: release_assets
               env:
+                  DEB_PATH: ${{ steps.debian.outputs.deb }}
                   SNAP_PATH: ${{ steps.snapcraft.outputs.snap }}
                   FLATPAK_PATH: ${{ steps.flatpak.outputs.bundle }}
                   FLATHUB_ARCHIVE: ${{ steps.flathub_submission.outputs.archive }}
@@ -184,12 +209,9 @@ jobs:
                   rm -rf "$stage_dir"
                   mkdir -p "$stage_dir"
 
-                  find "$GITHUB_WORKSPACE/src-tauri/target" -type f \( \
-                    -name '*.deb' -o \
-                    -name '*.AppImage' \
-                  \) -exec cp {} "$stage_dir/" \;
+                  find "$GITHUB_WORKSPACE/src-tauri/target" -type f -name '*.AppImage' -exec cp {} "$stage_dir/" \;
 
-                  for asset in "$SNAP_PATH" "$FLATPAK_PATH" "$FLATHUB_ARCHIVE"; do
+                  for asset in "$DEB_PATH" "$SNAP_PATH" "$FLATPAK_PATH" "$FLATHUB_ARCHIVE"; do
                       [ -n "$asset" ] || continue
                       cp "$asset" "$stage_dir/"
                   done
@@ -204,7 +226,7 @@ jobs:
                   if-no-files-found: error
 
             - name: Upload Linux store bundles to GitHub release
-              if: matrix.platform == 'ubuntu-22.04' && startsWith(github.ref, 'refs/tags/v')
+              if: startsWith(matrix.platform, 'ubuntu-') && startsWith(github.ref, 'refs/tags/v')
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
@@ -214,7 +236,7 @@ jobs:
 
     checksums:
         needs: build
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-24.04
 
         steps:
             - name: Download release artifacts

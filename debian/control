@@ -5,7 +5,6 @@ Maintainer: MobiDevices <md@mobidevices.com>
 Build-Depends:
  debhelper-compat (= 13),
  cargo,
- npm,
  libappindicator3-dev,
  librsvg2-dev,
  libwebkit2gtk-4.1-dev,

@@ -6,8 +6,7 @@ export DH_VERBOSE = 1
 	dh $@
 
 override_dh_auto_build:
-	npm install
-	npm run build
+	cargo build --manifest-path src-tauri/Cargo.toml --release --locked
 
 override_dh_auto_install:
 	sh linux/install-assets.sh \
@@ -23,4 +22,3 @@ override_dh_auto_install:
 		com.mobidevices.desktop \
 		linux/com.mobidevices.desktop.metainfo.xml \
 		com.mobidevices.desktop.metainfo.xml
-	install -Dm644 ../LICENSE debian/mobidevices/usr/share/licenses/mobidevices/LICENSE
