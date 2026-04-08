@@ -1,0 +1,181 @@
+name: Release
+
+on:
+    workflow_dispatch:
+    push:
+        tags:
+            - 'v*'
+
+permissions:
+    contents: write
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    ensure_release:
+        if: startsWith(github.ref, 'refs/tags/v')
+        runs-on: ubuntu-24.04
+
+        steps:
+            - name: Ensure GitHub release exists
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euxo pipefail
+
+                  if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+                      gh release create "$GITHUB_REF_NAME" \
+                        --title "MobiDevices $GITHUB_REF_NAME" \
+                        --generate-notes || \
+                      gh release view "$GITHUB_REF_NAME" >/dev/null
+                  fi
+
+    build_artifacts:
+        permissions:
+            contents: read
+        uses: ./.github/workflows/app-build-common.yml
+        with:
+            artifact_prefix: release
+        secrets: inherit
+
+    checksums:
+        needs: build_artifacts
+        runs-on: ubuntu-24.04
+
+        steps:
+            - name: Checkout repository
+              if: startsWith(github.ref, 'refs/tags/v')
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+
+            - name: Download release artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: release-*
+                  path: release-artifacts
+                  merge-multiple: true
+
+            - name: Export Flathub submission bundle
+              if: startsWith(github.ref, 'refs/tags/v')
+              run: |
+                  set -euxo pipefail
+                  submission_dir="$RUNNER_TEMP/flathub-submission"
+                  archive_path="release-artifacts/mobidevices-flathub-submission-${GITHUB_REF_NAME}.tar.gz"
+                  bash flatpak/export-flathub-submission.sh "$GITHUB_REF_NAME" "$submission_dir"
+                  tar -C "$submission_dir" -czf "$archive_path" .
+
+            - name: Generate SHA256SUMS
+              run: |
+                  set -euxo pipefail
+                  mapfile -d '' files < <(find release-artifacts -type f \( \
+                    -name '*.deb' -o \
+                    -name '*.AppImage' -o \
+                    -name '*.dmg' -o \
+                    -name '*.msi' -o \
+                    -name '*.exe' -o \
+                    -name '*.msix' -o \
+                    -name '*.snap' -o \
+                    -name '*.flatpak' -o \
+                    -name '*.tar.gz' \
+                  \) -print0 | sort -z)
+
+                  if [ "${#files[@]}" -eq 0 ]; then
+                      echo "No release artifacts found for checksum generation" >&2
+                      exit 1
+                  fi
+
+                  sha256sum "${files[@]}" > release-artifacts/SHA256SUMS.txt
+
+            - name: Upload checksum artifact
+              uses: actions/upload-artifact@v6
+              with:
+                  name: release-checksums
+                  path: release-artifacts/SHA256SUMS.txt
+
+    publish_release_assets:
+        if: startsWith(github.ref, 'refs/tags/v')
+        needs:
+            - ensure_release
+            - checksums
+        runs-on: ubuntu-24.04
+
+        steps:
+            - name: Download release artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: release-*
+                  path: release-artifacts
+                  merge-multiple: true
+
+            - name: Download checksum artifact
+              uses: actions/download-artifact@v8
+              with:
+                  name: release-checksums
+                  path: release-artifacts
+
+            - name: Upload assets to GitHub release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  set -euxo pipefail
+                  mapfile -d '' release_files < <(find release-artifacts -maxdepth 1 -type f \( \
+                    -name '*.AppImage' -o \
+                    -name '*.deb' -o \
+                    -name '*.snap' -o \
+                    -name '*.flatpak' -o \
+                    -name '*.tar.gz' -o \
+                    -name 'SHA256SUMS.txt' \
+                  \) -print0 | sort -z)
+
+                  [ "${#release_files[@]}" -gt 0 ]
+                  gh release upload "$GITHUB_REF_NAME" "${release_files[@]}" --clobber
+
+    publish_snap_store:
+        if: startsWith(github.ref, 'refs/tags/v')
+        needs: build_artifacts
+        runs-on: ubuntu-24.04
+
+        env:
+            SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+
+        steps:
+            - name: Download release artifacts
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: release-*
+                  path: release-artifacts
+                  merge-multiple: true
+
+            - name: Install Snapcraft
+              run: |
+                  set -euxo pipefail
+
+                  if [ -z "$SNAPCRAFT_STORE_CREDENTIALS" ]; then
+                      echo "SNAPCRAFT_STORE_CREDENTIALS is not set, skipping Snap Store publish setup"
+                      exit 0
+                  fi
+
+                  if snap list snapcraft >/dev/null 2>&1; then
+                      sudo snap refresh snapcraft || true
+                  else
+                      sudo snap install snapcraft --classic
+                  fi
+
+                  echo /snap/bin >> "$GITHUB_PATH"
+
+            - name: Publish Snap to Snap Store
+              run: |
+                  set -euxo pipefail
+
+                  if [ -z "$SNAPCRAFT_STORE_CREDENTIALS" ]; then
+                      echo "SNAPCRAFT_STORE_CREDENTIALS is not set, skipping Snap Store publish"
+                      exit 0
+                  fi
+
+                  mapfile -d '' snap_files < <(find release-artifacts -maxdepth 1 -type f -name '*.snap' -print0 | sort -z)
+
+                  [ "${#snap_files[@]}" -gt 0 ]
+                  snapcraft upload --release=stable "${snap_files[@]}"
