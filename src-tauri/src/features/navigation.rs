@@ -271,6 +271,7 @@ pub fn build_navigation_menu<R: tauri::Runtime>(
                 )?],
             )?,
             &navigation_menu,
+            #[cfg(not(target_os = "linux"))]
             &window_menu,
             &help_menu,
         ],
