@@ -121,7 +121,7 @@ jobs:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
                   set -euxo pipefail
-                  mapfile -d '' release_files < <(find release-artifacts -maxdepth 1 -type f \( \
+                  mapfile -d '' release_files < <(find release-artifacts -type f \( \
                     -name '*.AppImage' -o \
                     -name '*.deb' -o \
                     -name '*.snap' -o \
@@ -175,7 +175,10 @@ jobs:
                       exit 0
                   fi
 
-                  mapfile -d '' snap_files < <(find release-artifacts -maxdepth 1 -type f -name '*.snap' -print0 | sort -z)
+                  mapfile -d '' snap_files < <(find release-artifacts -type f -name '*.snap' -print0 | sort -z)
 
                   [ "${#snap_files[@]}" -gt 0 ]
-                  snapcraft upload --release=stable "${snap_files[@]}"
+
+                  for snap_file in "${snap_files[@]}"; do
+                      snapcraft upload --release=stable "$snap_file"
+                  done

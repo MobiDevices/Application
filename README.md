@@ -19,7 +19,7 @@ Standalone repository for the cross-platform native MobiDevices application buil
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml
-│       └── build.yml
+│       └── release.yml
 ├── macos/
 ├── src-tauri/
 │   ├── src/
@@ -87,4 +87,4 @@ npm run validate:linux-assets
 
 - Workflow and constraints: `AGENTS.md`
 - CI validation: `.github/workflows/ci.yml`
-- Release workflow: `.github/workflows/build.yml`
+- Release workflow: `.github/workflows/release.yml`
