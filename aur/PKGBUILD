@@ -13,7 +13,7 @@ sha256sums=('SKIP')
 
 prepare() {
     cd "$srcdir/MobiDevices-app-$pkgver"
-    npm install
+    npm ci
 }
 
 build() {

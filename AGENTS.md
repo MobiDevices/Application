@@ -40,7 +40,7 @@ Do not edit unless explicitly requested:
 ## Requirements
 
 - Rust toolchain pinned in `src-tauri/rust-toolchain.toml`
-- Node.js 18+
+- Node.js 24+
 - For Android: Java 17, Android SDK, NDK
 
 ## Development Commands
