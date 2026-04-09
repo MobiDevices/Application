@@ -14,5 +14,4 @@ jobs:
         uses: ./.github/workflows/app-build-common.yml
         with:
             artifact_prefix: ci
-            publish_release: false
         secrets: inherit
