@@ -15,4 +15,5 @@ jobs:
         with:
             artifact_prefix: ci
             publish_release: false
+            build_linux_store_packages: false
         secrets: inherit
