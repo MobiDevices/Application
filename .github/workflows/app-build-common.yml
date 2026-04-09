@@ -10,10 +10,6 @@ on:
                 required: false
                 type: boolean
                 default: false
-            build_linux_store_packages:
-                required: false
-                type: boolean
-                default: true
 
 jobs:
     build:
@@ -60,30 +56,24 @@ jobs:
             - name: Install app dependencies
               run: npm install
 
-            - name: Install native build dependencies (Linux only)
+            - name: Install native dependencies (Linux only)
               if: startsWith(matrix.platform, 'ubuntu-')
               run: |
                   sudo apt-get update
                   sudo apt-get install -y \
                     appstream \
                     build-essential \
-                    libappindicator3-dev \
-                    librsvg2-dev \
-                    libwebkit2gtk-4.1-dev \
-                    patchelf
-
-            - name: Install Linux packaging dependencies
-              if: startsWith(matrix.platform, 'ubuntu-') && inputs.build_linux_store_packages
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y \
                     cargo \
                     debhelper \
                     desktop-file-utils \
                     dpkg-dev \
                     fakeroot \
                     flatpak \
-                    flatpak-builder
+                    flatpak-builder \
+                    libappindicator3-dev \
+                    librsvg2-dev \
+                    libwebkit2gtk-4.1-dev \
+                    patchelf
 
             - name: Validate Linux desktop metadata (Linux only)
               if: startsWith(matrix.platform, 'ubuntu-')
@@ -112,7 +102,7 @@ jobs:
                   args: ${{ matrix.args }}
 
             - name: Build Debian package (Linux only)
-              if: startsWith(matrix.platform, 'ubuntu-') && inputs.build_linux_store_packages
+              if: startsWith(matrix.platform, 'ubuntu-')
               id: debian
               run: |
                   set -euxo pipefail
@@ -131,13 +121,13 @@ jobs:
                   echo "deb=$deb_path" >> "$GITHUB_OUTPUT"
 
             - name: Install Flatpak runtime dependencies (Linux only)
-              if: startsWith(matrix.platform, 'ubuntu-') && inputs.build_linux_store_packages
+              if: startsWith(matrix.platform, 'ubuntu-')
               run: |
                   flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
                   flatpak --user install -y flathub org.gnome.Platform//50 org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
 
             - name: Build Flatpak package (Linux only)
-              if: startsWith(matrix.platform, 'ubuntu-') && inputs.build_linux_store_packages
+              if: startsWith(matrix.platform, 'ubuntu-')
               id: flatpak
               run: |
                   set -euxo pipefail
@@ -146,7 +136,7 @@ jobs:
                   echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
 
             - name: Export Flathub submission bundle (Linux release only)
-              if: startsWith(matrix.platform, 'ubuntu-') && inputs.build_linux_store_packages && inputs.publish_release && matrix.build_flathub_submission && startsWith(github.ref, 'refs/tags/v')
+              if: startsWith(matrix.platform, 'ubuntu-') && inputs.publish_release && matrix.build_flathub_submission && startsWith(github.ref, 'refs/tags/v')
               id: flathub_submission
               run: |
                   set -euxo pipefail
@@ -157,7 +147,7 @@ jobs:
                   echo "archive=$archive_path" >> "$GITHUB_OUTPUT"
 
             - name: Install Snapcraft (Linux only)
-              if: startsWith(matrix.platform, 'ubuntu-') && inputs.build_linux_store_packages
+              if: startsWith(matrix.platform, 'ubuntu-')
               run: |
                   set -euxo pipefail
 
@@ -186,7 +176,7 @@ jobs:
                   echo /snap/bin >> "$GITHUB_PATH"
 
             - name: Build Snap package (Linux only)
-              if: startsWith(matrix.platform, 'ubuntu-') && inputs.build_linux_store_packages
+              if: startsWith(matrix.platform, 'ubuntu-')
               id: snapcraft
               env:
                   SNAPCRAFT_BUILD_PROVIDER: lxd
@@ -199,7 +189,7 @@ jobs:
                   echo "snap=$snap_path" >> "$GITHUB_OUTPUT"
 
             - name: Publish Snap to Snap Store
-              if: startsWith(matrix.platform, 'ubuntu-') && inputs.build_linux_store_packages && inputs.publish_release && env.SNAPCRAFT_STORE_CREDENTIALS != '' && startsWith(github.ref, 'refs/tags/v')
+              if: startsWith(matrix.platform, 'ubuntu-') && inputs.publish_release && env.SNAPCRAFT_STORE_CREDENTIALS != '' && startsWith(github.ref, 'refs/tags/v')
               env:
                   SNAPCRAFT_STORE_CREDENTIALS: ${{ env.SNAPCRAFT_STORE_CREDENTIALS }}
               run: |
