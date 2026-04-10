@@ -10,4 +10,5 @@ src-tauri/gen/
 *.flatpak
 *.snap
 snap/.ci/
+snap/parts/
 dist/

@@ -2,7 +2,6 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri_plugin_shell::ShellExt;
 
 const LINK_INTERCEPT_SCRIPT: &str = include_str!("external_links/scripts/link_intercept.js");
 
@@ -33,18 +32,60 @@ pub fn log_external(msg: &str) {
     }
 }
 
-pub fn open_external<R: tauri::Runtime>(app_handle: &tauri::AppHandle<R>, url: &str) {
-    log_external(&format!("open_external: {url}"));
+#[cfg(target_os = "linux")]
+enum SnapOpenResult {
+    NotSnap,
+    Opened,
+    Failed,
+}
 
-    #[allow(deprecated)]
-    match app_handle.shell().open(url, None) {
-        Ok(_) => {
-            log_external("shell().open: OK");
-            return;
+#[cfg(target_os = "linux")]
+fn try_command_open(command: &str, args: &[&str], label: &str) -> bool {
+    match Command::new(command).args(args).output() {
+        Ok(output) if output.status.success() => {
+            log_external(&format!("{label}: OK"));
+            true
+        }
+        Ok(output) => {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            log_external(&format!(
+                "{label}: ERR: status={} stderr={}",
+                output.status,
+                stderr.trim()
+            ));
+            false
         }
         Err(err) => {
-            log_external(&format!("shell().open: ERR: {err}"));
+            log_external(&format!("{label}: ERR: {err}"));
+            false
         }
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn try_open_via_snapctl(url: &str) -> SnapOpenResult {
+    if std::env::var_os("SNAP").is_none() && std::env::var_os("SNAP_NAME").is_none() {
+        return SnapOpenResult::NotSnap;
+    }
+
+    if try_command_open("snapctl", &["user-open", url], "snapctl user-open") {
+        SnapOpenResult::Opened
+    } else {
+        SnapOpenResult::Failed
+    }
+}
+
+pub fn open_external(url: &str) {
+    log_external(&format!("open_external: {url}"));
+
+    #[cfg(target_os = "linux")]
+    match try_open_via_snapctl(url) {
+        SnapOpenResult::Opened => return,
+        SnapOpenResult::Failed => {
+            log_external("open_external: FAILED (snapctl path)");
+            return;
+        }
+        SnapOpenResult::NotSnap => {}
     }
 
     match open::that(url) {

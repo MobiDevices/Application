@@ -3,19 +3,20 @@
 <component type="desktop-application">
     <id>com.mobidevices.desktop</id>
     <metadata_license>CC0-1.0</metadata_license>
-    <project_license>MIT</project_license>
+    <project_license>WTFPL</project_license>
     <name>MobiDevices</name>
-    <summary>Official desktop client for MobiDevices.com</summary>
+    <summary>Read MobiDevices.com in a desktop app</summary>
     <developer_name>MobiDevices</developer_name>
+    <icon type="stock">com.mobidevices.desktop</icon>
     <launchable type="desktop-id">com.mobidevices.desktop.desktop</launchable>
     <update_contact>md@mobidevices.com</update_contact>
 
     <description>
-        <p>MobiDevices is the official Tauri-based desktop client for MobiDevices.com, bringing the publication into a dedicated native window instead of a browser tab.</p>
-        <p>The app preserves the live website experience while adding desktop-native behavior around it.</p>
+        <p>MobiDevices is a desktop app for reading MobiDevices.com outside the browser.</p>
+        <p>It keeps the familiar site experience while adding desktop behavior where it matters.</p>
         <ul>
             <li>Opens external links in the default browser</li>
-            <li>Provides localized native navigation actions</li>
+            <li>Provides localized navigation actions</li>
             <li>Keeps the window title in sync with the current page</li>
             <li>Restores the previous desktop window size and position</li>
         </ul>
@@ -31,7 +32,7 @@
             <image type="source" width="2560" height="1440">https://mobidevices.com/screenshots/mobidevices-app_2.jpeg</image>
         </screenshot>
         <screenshot>
-            <caption>Native navigation menu</caption>
+            <caption>Navigation menu</caption>
             <image type="source" width="2560" height="1440">https://mobidevices.com/screenshots/mobidevices-app_3.jpeg</image>
         </screenshot>
     </screenshots>
@@ -59,10 +60,16 @@
     <url type="bugtracker">https://github.com/MobiDevices/MobiDevices-app/issues</url>
 
     <releases>
+        <release version="1.0.1" date="2026-04-10">
+            <url type="details">https://github.com/MobiDevices/MobiDevices-app/releases/tag/v1.0.1</url>
+            <description>
+                <p>Improved Linux release packaging for Snap, including compatibility fixes for core24-based systems and updated store metadata.</p>
+            </description>
+        </release>
         <release version="1.0.0" date="2026-04-04">
             <url type="details">https://github.com/MobiDevices/MobiDevices-app/releases/tag/v1.0.0</url>
             <description>
-                <p>Initial desktop release for MobiDevices.com with native navigation, external-link handling, window title sync, and persistent window state.</p>
+                <p>Initial desktop release for MobiDevices.com with built-in navigation, external-link handling, window title sync, and persistent window state.</p>
             </description>
         </release>
     </releases>

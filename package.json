@@ -1,7 +1,7 @@
 {
     "name": "mobidevices-app",
-    "version": "1.0.0",
-    "description": "Native desktop client for MobiDevices.com",
+    "version": "1.0.1",
+    "description": "Desktop app for MobiDevices.com",
     "homepage": "https://mobidevices.com",
     "repository": {
         "type": "git",
@@ -10,6 +10,7 @@
     "bugs": {
         "url": "https://github.com/MobiDevices/MobiDevices-app/issues"
     },
+    "license": "WTFPL",
     "type": "module",
     "scripts": {
         "tauri": "tauri",

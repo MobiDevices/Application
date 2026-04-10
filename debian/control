@@ -21,7 +21,7 @@ Depends:
  ${shlibs:Depends},
  libgtk-3-0,
  libwebkit2gtk-4.1-0
-Description: Native desktop client for MobiDevices.com
+Description: Desktop app for MobiDevices.com
  MobiDevices is a Tauri-based desktop application for browsing
- MobiDevices.com with native window management, external-link handling,
+ MobiDevices.com with built-in navigation, external-link handling,
  and persistent window state.

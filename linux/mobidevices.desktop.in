@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=MobiDevices
-Comment=Native desktop access to mobidevices.com
+Comment=Read MobiDevices.com in a desktop app
 Icon=@ICON@
 Exec=@EXEC@
 Categories=Network;News;

@@ -1,0 +1,11 @@
+#!/bin/sh
+# Detect virtual machine by checking for hypervisor CPU flag.
+# If running inside a VM, fall back to software rendering
+# because GPU acceleration is unavailable or broken.
+if grep -qw hypervisor /proc/cpuinfo 2>/dev/null; then
+    export WEBKIT_DISABLE_COMPOSITING_MODE=1
+    export LIBGL_ALWAYS_SOFTWARE=1
+    export GALLIUM_DRIVER=llvmpipe
+fi
+
+exec "$SNAP/bin/mobidevices-app" "$@"

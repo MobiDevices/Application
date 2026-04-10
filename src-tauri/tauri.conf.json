@@ -1,7 +1,7 @@
 {
     "$schema": "https://schema.tauri.app/config/2",
     "productName": "MobiDevices",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "identifier": "com.mobidevices.desktop",
     "build": {
         "devUrl": "https://mobidevices.com"
@@ -19,9 +19,9 @@
         "category": "News",
         "publisher": "MobiDevices",
         "homepage": "https://mobidevices.com",
-        "shortDescription": "Native desktop access to MobiDevices.com",
-        "longDescription": "MobiDevices is a Tauri-based desktop application for browsing the latest gadget news, reviews, and technology coverage from MobiDevices.com with native window management, external-link handling, and persistent window state.",
-        "license": "MIT",
+        "shortDescription": "Read MobiDevices.com in a desktop app",
+        "longDescription": "MobiDevices brings MobiDevices.com into a desktop app with built-in navigation, proper external link handling, synced window titles, and restored window state.",
+        "license": "WTFPL",
         "licenseFile": "../LICENSE",
         "icon": [
             "icons/32x32.png",

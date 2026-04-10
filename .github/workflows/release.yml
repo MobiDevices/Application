@@ -16,7 +16,7 @@ concurrency:
 jobs:
     ensure_release:
         if: startsWith(github.ref, 'refs/tags/v')
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-22.04
 
         steps:
             - name: Ensure GitHub release exists
@@ -43,7 +43,7 @@ jobs:
 
     checksums:
         needs: build_artifacts
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-22.04
 
         steps:
             - name: Checkout repository
@@ -101,7 +101,7 @@ jobs:
         needs:
             - ensure_release
             - checksums
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-22.04
 
         steps:
             - name: Download release artifacts
@@ -138,7 +138,7 @@ jobs:
     publish_snap_store:
         if: startsWith(github.ref, 'refs/tags/v')
         needs: build_artifacts
-        runs-on: ubuntu-24.04
+        runs-on: ubuntu-22.04
 
         env:
             SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}

@@ -14,12 +14,12 @@ jobs:
             fail-fast: false
             matrix:
                 include:
-                    - platform: ubuntu-24.04
+                    - platform: ubuntu-22.04
                       args: --bundles appimage
                       asset_dir: linux-x64
                       snap_bundle_name: mobidevices-linux-x64.snap
                       flatpak_bundle_name: mobidevices-linux-x64.flatpak
-                    - platform: ubuntu-24.04-arm
+                    - platform: ubuntu-22.04-arm
                       args: --bundles appimage
                       asset_dir: linux-arm64
                       snap_bundle_name: mobidevices-linux-arm64.snap
@@ -51,7 +51,7 @@ jobs:
               uses: Swatinem/rust-cache@v2
               with:
                   workspaces: |
-                    src-tauri -> target
+                      src-tauri -> target
 
             - name: Install app dependencies
               run: npm ci
@@ -61,19 +61,19 @@ jobs:
               run: |
                   sudo apt-get update
                   sudo apt-get install -y \
-                    appstream \
-                    build-essential \
-                    cargo \
-                    debhelper \
-                    desktop-file-utils \
-                    dpkg-dev \
-                    fakeroot \
-                    flatpak \
-                    flatpak-builder \
-                    libappindicator3-dev \
-                    librsvg2-dev \
-                    libwebkit2gtk-4.1-dev \
-                    patchelf
+                      appstream \
+                      build-essential \
+                      cargo \
+                      debhelper \
+                      desktop-file-utils \
+                      dpkg-dev \
+                      fakeroot \
+                      flatpak \
+                      flatpak-builder \
+                      libappindicator3-dev \
+                      librsvg2-dev \
+                      libwebkit2gtk-4.1-dev \
+                      patchelf
 
             - name: Validate Linux desktop metadata (Linux only)
               if: startsWith(matrix.platform, 'ubuntu-')
@@ -96,30 +96,15 @@ jobs:
                   rm -rf "$deb_output_dir"
                   mkdir -p "$deb_output_dir"
                   find "$GITHUB_WORKSPACE/.." -maxdepth 1 -type f \( \
-                    -name 'mobidevices_*.deb' -o \
-                    -name 'mobidevices_*.buildinfo' -o \
-                    -name 'mobidevices_*.changes' \
+                      -name 'mobidevices_*.deb' -o \
+                      -name 'mobidevices_*.buildinfo' -o \
+                      -name 'mobidevices_*.changes' \
                   \) -delete
                   dpkg-buildpackage -us -uc -b
                   find "$GITHUB_WORKSPACE/.." -maxdepth 1 -type f -name 'mobidevices_*.deb' -exec mv {} "$deb_output_dir/" \;
                   deb_path=$(find "$deb_output_dir" -maxdepth 1 -type f -name 'mobidevices_*.deb' -print -quit)
                   [ -n "$deb_path" ]
                   echo "deb=$deb_path" >> "$GITHUB_OUTPUT"
-
-            - name: Install Flatpak runtime dependencies (Linux only)
-              if: startsWith(matrix.platform, 'ubuntu-')
-              run: |
-                  flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-                  flatpak --user install -y flathub org.gnome.Platform//50 org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
-
-            - name: Build Flatpak package (Linux only)
-              if: startsWith(matrix.platform, 'ubuntu-')
-              id: flatpak
-              run: |
-                  set -euxo pipefail
-                  flatpak_bundle_path="$RUNNER_TEMP/${{ matrix.flatpak_bundle_name }}"
-                  bash flatpak/build.sh "$flatpak_bundle_path"
-                  echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
 
             - name: Install Snapcraft (Linux only)
               if: startsWith(matrix.platform, 'ubuntu-')
@@ -163,6 +148,21 @@ jobs:
                   sudo -u "$USER" -E bash snap/build.sh "$snap_path"
                   echo "snap=$snap_path" >> "$GITHUB_OUTPUT"
 
+            - name: Install Flatpak runtime dependencies (Linux only)
+              if: startsWith(matrix.platform, 'ubuntu-')
+              run: |
+                  flatpak --user remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+                  flatpak --user install -y flathub org.gnome.Platform//50 org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.rust-stable//25.08
+
+            - name: Build Flatpak package (Linux only)
+              if: startsWith(matrix.platform, 'ubuntu-')
+              id: flatpak
+              run: |
+                  set -euxo pipefail
+                  flatpak_bundle_path="$RUNNER_TEMP/${{ matrix.flatpak_bundle_name }}"
+                  bash flatpak/build.sh "$flatpak_bundle_path"
+                  echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
+
             - name: Stage build assets
               if: startsWith(matrix.platform, 'ubuntu-')
               id: staged_assets
@@ -180,8 +180,8 @@ jobs:
                   find "$GITHUB_WORKSPACE/src-tauri/target" -type f -name '*.AppImage' -exec cp {} "$stage_dir/" \;
 
                   for asset in "$DEB_PATH" "$SNAP_PATH" "$FLATPAK_PATH"; do
-                    [ -n "$asset" ] || continue
-                    cp "$asset" "$stage_dir/"
+                      [ -n "$asset" ] || continue
+                      cp "$asset" "$stage_dir/"
                   done
 
                   staged_file=$(find "$stage_dir" -maxdepth 1 -type f -print -quit)

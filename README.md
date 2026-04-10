@@ -2,7 +2,7 @@
 
 ## Overview
 
-Standalone repository for the cross-platform native MobiDevices application built with Tauri 2.
+Standalone repository for the cross-platform MobiDevices application built with Tauri 2.
 
 - Main scope: `.`
 - Rust/Tauri code: `src-tauri/`
@@ -58,9 +58,9 @@ npm run validate:linux-assets
 
 ## Build Outputs
 
-- Native Tauri bundles are produced under `src-tauri/target/release/bundle/`.
+- Tauri bundles are produced under `src-tauri/target/release/bundle/`.
 - Linux `.deb` packages in CI and tagged releases are built from the Debian packaging under `debian/` via `dpkg-buildpackage`, then staged under architecture-specific directories in `dist/release/`.
-- CI and tagged releases now build native ARM artifacts for Linux (`ubuntu-24.04-arm`) in addition to the existing Linux x64 pipeline.
+- CI and tagged releases now build ARM artifacts for Linux (`ubuntu-24.04-arm`) in addition to the existing Linux x64 pipeline.
 - Local Flatpak builds now write the final bundle to `dist/flatpak/mobidevices.flatpak` by default.
 - Local Snap builds now write the final package to `dist/snap/mobidevices.snap` by default.
 - Local Flathub submission export now writes to `dist/flathub/<tag>/` by default.

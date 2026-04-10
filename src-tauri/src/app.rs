@@ -85,9 +85,6 @@ pub fn run() {
             let url = WebviewUrl::External("https://mobidevices.com".parse()?);
             let title = "MobiDevices";
 
-            let app_handle_new_window = app.handle().clone();
-            let app_handle_navigation = app.handle().clone();
-
             #[allow(unused_mut)]
             let mut main_window_builder = WebviewWindowBuilder::new(app, "main", url)
                 .title(title)
@@ -101,8 +98,7 @@ pub fn run() {
                 .fullscreen(false)
                 .on_new_window(move |url, _features| {
                     external_links::log_external(&format!("on_new_window: {}", url.as_str()));
-                    #[allow(deprecated)]
-                    external_links::open_external(&app_handle_new_window, url.as_str());
+                    external_links::open_external(url.as_str());
                     NewWindowResponse::Deny
                 })
                 .on_navigation(move |url| {
@@ -111,7 +107,7 @@ pub fn run() {
                             "on_navigation (external): {}",
                             url.as_str()
                         ));
-                        external_links::open_external(&app_handle_navigation, url.as_str());
+                        external_links::open_external(url.as_str());
                         return false;
                     }
 
