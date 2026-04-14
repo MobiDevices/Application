@@ -148,6 +148,33 @@ jobs:
                   sudo -u "$USER" -E bash snap/build.sh "$snap_path"
                   echo "snap=$snap_path" >> "$GITHUB_OUTPUT"
 
+            - name: Reclaim disk before Flatpak build (Linux only)
+              if: startsWith(matrix.platform, 'ubuntu-')
+              id: reclaim_before_flatpak
+              run: |
+                  set -euxo pipefail
+
+                  appimage_dir="$RUNNER_TEMP/appimage-${{ matrix.asset_dir }}"
+                  rm -rf "$appimage_dir"
+                  mkdir -p "$appimage_dir"
+                  find "$GITHUB_WORKSPACE/src-tauri/target" -type f -name '*.AppImage' -exec cp {} "$appimage_dir/" \;
+                  echo "appimage_dir=$appimage_dir" >> "$GITHUB_OUTPUT"
+
+                  rm -rf "$GITHUB_WORKSPACE/src-tauri/target"
+                  rm -rf \
+                      "$GITHUB_WORKSPACE/snap/.ci" \
+                      "$GITHUB_WORKSPACE/snap/.snapcraft" \
+                      "$GITHUB_WORKSPACE/snap/parts" \
+                      "$GITHUB_WORKSPACE/snap/prime" \
+                      "$GITHUB_WORKSPACE/snap/stage"
+
+                  if [ -x /snap/bin/lxc ]; then
+                      /snap/bin/lxc list --format csv -c n | xargs -r -n 1 sudo /snap/bin/lxc delete --force || true
+                      /snap/bin/lxc image list --format csv -c f | xargs -r -n 1 sudo /snap/bin/lxc image delete || true
+                  fi
+
+                  sudo rm -rf /var/snap/lxd/common/lxd/cache/*
+
             - name: Install Flatpak runtime dependencies (Linux only)
               if: startsWith(matrix.platform, 'ubuntu-')
               run: |
@@ -163,10 +190,21 @@ jobs:
                   bash flatpak/build.sh "$flatpak_bundle_path"
                   echo "bundle=$flatpak_bundle_path" >> "$GITHUB_OUTPUT"
 
+            - name: Reclaim disk after Flatpak build (Linux only)
+              if: startsWith(matrix.platform, 'ubuntu-')
+              run: |
+                  set -euxo pipefail
+
+                  flatpak --user uninstall -y --unused || true
+                  rm -rf "$HOME/.local/share/flatpak/app"
+                  rm -rf "$HOME/.local/share/flatpak/repo"
+                  rm -rf "$HOME/.local/share/flatpak/runtime"
+
             - name: Stage build assets
               if: startsWith(matrix.platform, 'ubuntu-')
               id: staged_assets
               env:
+                  APPIMAGE_DIR: ${{ steps.reclaim_before_flatpak.outputs.appimage_dir }}
                   DEB_PATH: ${{ steps.debian.outputs.deb }}
                   SNAP_PATH: ${{ steps.snapcraft.outputs.snap }}
                   FLATPAK_PATH: ${{ steps.flatpak.outputs.bundle }}
@@ -177,7 +215,7 @@ jobs:
                   rm -rf "$stage_dir"
                   mkdir -p "$stage_dir"
 
-                  find "$GITHUB_WORKSPACE/src-tauri/target" -type f -name '*.AppImage' -exec cp {} "$stage_dir/" \;
+                  find "$APPIMAGE_DIR" -maxdepth 1 -type f -name '*.AppImage' -exec cp {} "$stage_dir/" \;
 
                   for asset in "$DEB_PATH" "$SNAP_PATH" "$FLATPAK_PATH"; do
                       [ -n "$asset" ] || continue
