@@ -30,7 +30,7 @@ modules:
           - install -Dm644 LICENSE /app/share/licenses/com.mobidevices.desktop/LICENSE
       sources:
           - type: git
-            url: https://github.com/MobiDevices/MobiDevices-app.git
+            url: https://github.com/MobiDevices/Application.git
             tag: @UPSTREAM_TAG@
             commit: @UPSTREAM_COMMIT@
           - cargo-sources.json

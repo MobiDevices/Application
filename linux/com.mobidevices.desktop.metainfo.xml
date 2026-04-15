@@ -57,17 +57,17 @@
     <content_rating type="oars-1.1"/>
 
     <url type="homepage">https://mobidevices.com</url>
-    <url type="bugtracker">https://github.com/MobiDevices/MobiDevices-app/issues</url>
+    <url type="bugtracker">https://github.com/MobiDevices/Application/issues</url>
 
     <releases>
         <release version="1.0.1" date="2026-04-10">
-            <url type="details">https://github.com/MobiDevices/MobiDevices-app/releases/tag/v1.0.1</url>
+            <url type="details">https://github.com/MobiDevices/Application/releases/tag/v1.0.1</url>
             <description>
                 <p>Improved Linux release packaging for Snap, including compatibility fixes for core24-based systems and updated store metadata.</p>
             </description>
         </release>
         <release version="1.0.0" date="2026-04-04">
-            <url type="details">https://github.com/MobiDevices/MobiDevices-app/releases/tag/v1.0.0</url>
+            <url type="details">https://github.com/MobiDevices/Application/releases/tag/v1.0.0</url>
             <description>
                 <p>Initial desktop release for MobiDevices.com with built-in navigation, external-link handling, window title sync, and persistent window state.</p>
             </description>

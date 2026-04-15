@@ -4,7 +4,7 @@ version = "1.0.1"
 description = "Desktop app for MobiDevices.com"
 authors = ["MobiDevices <md@mobidevices.com>"]
 homepage = "https://mobidevices.com"
-repository = "https://github.com/MobiDevices/MobiDevices-app"
+repository = "https://github.com/MobiDevices/Application"
 license = "WTFPL"
 edition = "2021"
 

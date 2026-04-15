@@ -7,8 +7,8 @@ description: |
     Browse gadget news, reviews, and technology articles with built-in
     navigation, proper external-link handling, and restored window state.
 website: https://mobidevices.com
-source-code: https://github.com/MobiDevices/MobiDevices-app
-issues: https://github.com/MobiDevices/MobiDevices-app/issues
+source-code: https://github.com/MobiDevices/Application
+issues: https://github.com/MobiDevices/Application/issues
 contact: md@mobidevices.com
 license: WTFPL
 icon: gui/icon.png

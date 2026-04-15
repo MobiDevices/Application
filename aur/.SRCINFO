@@ -9,7 +9,7 @@ pkgbase = mobidevices
 	makedepends = npm
 	depends = gtk3
 	depends = webkit2gtk-4.1
-	source = mobidevices-1.0.1.tar.gz::https://github.com/MobiDevices/MobiDevices-app/archive/refs/tags/v1.0.1.tar.gz
+	source = mobidevices-1.0.1.tar.gz::https://github.com/MobiDevices/Application/archive/refs/tags/v1.0.1.tar.gz
 	sha256sums = SKIP
 
 pkgname = mobidevices

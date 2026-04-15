@@ -5,10 +5,10 @@
     "homepage": "https://mobidevices.com",
     "repository": {
         "type": "git",
-        "url": "https://github.com/MobiDevices/MobiDevices-app.git"
+        "url": "https://github.com/MobiDevices/Application.git"
     },
     "bugs": {
-        "url": "https://github.com/MobiDevices/MobiDevices-app/issues"
+        "url": "https://github.com/MobiDevices/Application/issues"
     },
     "license": "WTFPL",
     "type": "module",

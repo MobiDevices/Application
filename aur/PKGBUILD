@@ -8,7 +8,7 @@ url="https://mobidevices.com"
 license=('WTFPL')
 depends=('gtk3' 'webkit2gtk-4.1')
 makedepends=('cargo' 'npm')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/MobiDevices/MobiDevices-app/archive/refs/tags/v$pkgver.tar.gz")
+source=("$pkgname-$pkgver.tar.gz::https://github.com/MobiDevices/Application/archive/refs/tags/v$pkgver.tar.gz")
 sha256sums=('SKIP')
 
 prepare() {
