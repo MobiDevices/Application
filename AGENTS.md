@@ -121,3 +121,12 @@ If a required command fails because of missing environment, dependency, or tooli
 2. Report the exact failing command and short error reason
 3. Continue with the best safe alternative checks available locally
 4. Ask for user guidance only when blocked from meaningful validation
+
+## Change Scope
+
+- Prefer the smallest possible diff that fully solves the request.
+- For narrow fixes, keep the change in the existing function or line when possible.
+- Do not add wrappers, helper functions, new hooks, or refactors unless they are required to solve the task correctly.
+- If a request can be solved by changing one regex, one condition, or one line, do exactly that.
+- Preserve current architecture and file structure unless the user explicitly asks for a broader redesign.
+- Before making a broader change than requested, stop and explain why the minimal fix is not sufficient.
